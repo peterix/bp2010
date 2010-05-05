@@ -275,13 +275,41 @@ jednoduchá plocha nahrazena plochou plasma... a tam se dá nastavovat mnohem v�
 a na více místech.
 
 I při krátké době nutné na seznámení s nástrojem (KioskTool 1.0 v Kubuntu 9.04)
-jsem narazil na fatální chyby, kdy se bez zjevn=eho důvodu zhroutil. Nebude tedy
+jsem narazil na fatální chyby, kdy se bez zjevného důvodu zhroutil. Nebude tedy
 možné se spolehnout na korektnost kódu.
 \subsubsection{První pokus o převod nástroje do KDE4}
 
 \section{KAuth}
+KAuth je nové rozhraní pro autorizaci v KDE. Je postaveno na již existujících 
+rozhraních v operačních systémech. Podporu pro nová systémová rozhraní je možné
+přidat pomocí zásuvných modulů. Prozatím obsahuje vedle velmi jednoduchých
+testovacích modulů také modul pro polkit (policykit).
+
+Pomocí KAuthu je možné autorizovat akce uživatele (plugin se stará o veškeré
+ověřování a poskytuje pro název akce hodnotu true/false. Další možnost
+poskytovaná KAuthem je vytvořit pokud možno co nejjednodušší program, který
+pak bude v odpověď na autorizovanou akci spušťen příslušným pluginem.
+Takovýto program se nazývá KAuth helper. Helper a aplikace která ho využívá
+mohou do jisté míry komunikovat oběma směry a je také možné sledovat průběh
+dlouho trvající akce uvnitř helperu.
+
+TODO: jak vypadají KAuth pravidla, jak funguje přesně helper, jak přesně
+se převádí během kompilace (CMake magie).
+
+Převedení KAuth providel (soubory .actions a KAuth helpery) se provádí během
+kompilace KDE a KAuth nepodporuje tyto věci mimo kompilaci měnit. Také
+neumožňuje měnit autorizované uživatele a skupiny pro akce - to je přenecháno
+zásuvnému modulu. Další nepodporovanou částí je jakákoliv idea bezpečnostních
+profilů přiřazovaných uživatelům a skupinám. Význam této skutečnosti popíši
+v příštích kapitolách.
+
 \section{polkit (dříve PolicyKit)}
-\chapter{Změny v~KAuthorized?}
+
+\subsection{PolicyKit KCM}
+\section{Další využitelné technologie}
+\subsection{selinux}
+\subsection{AppArmor}
+\chapter{Změny v~KAuthorized, KAuth}
 \chapter{Úpravy nátroje KioskTool}
 \chapter{Testování a začlenění do KDE}
 \chapter{Závěr}
