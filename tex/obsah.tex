@@ -1,3 +1,6 @@
+\def\topfraction{.9}
+\def\floatpagefraction{.8}
+
 %=========================================================================
 \chapter{Úvod}
 V~moderních operačních systémech určených pro desktop (pracovní stanice,
@@ -171,6 +174,7 @@ využívá všech jeho vlastností. Poskytuje KDE knihovnám a aplikacím možno
 autorizace obecných akcí, KAkcí (KAction), konfiguračních modulů KCM, a přistupů
 k URL adresám.
 Chybí zde ovšem omezení přístupu ke zdrojům.
+
 \subsubsection{KAkce (KActions) a obecné akce}
 Nastavované ve skupině 'KDE Action Restrictions'.
 Rozdíl mezi obecnou akcí a KAkcí v rámci KAuthorized je mizivý a funkce
@@ -215,14 +219,14 @@ je \$HOME nebo \$TMP.
 
 Příklad:
 \begin{verbatim}
-[KDE URL Restrictions][$i]
+[KDE URL Restrictions][\$i]
 rule_count=6
 rule_1=open,,,,file,,,false
 rule_2=list,,,,file,,,false
-rule_3=open,,,,file,,$HOME,true
-rule_4=list,,,,file,,$HOME,true
-rule_5=open,,,,file,,$TMP,true
-rule_6=list,,,,file,,$TMP,true
+rule_3=open,,,,file,,\$HOME,true
+rule_4=list,,,,file,,\$HOME,true
+rule_5=open,,,,file,,\$TMP,true
+rule_6=list,,,,file,,\$TMP,true
 \end{verbatim}
 
 Pravidla 1 a 2 jsou vypnuta, 3 - 6 zakazují otvírat a vypisovat soubory
@@ -233,84 +237,219 @@ Kde používá třídu KCModule jako základ pro všechny moduly použité v apl
 'Nastavení Systému' a kcmshell. Za pomoci těchto omezení je možné skrýt
 tyto moduly ve zmíněných aplikacích a tam kde je možné je jinak otevřít tak,
 aby je uživatel nemohl otevřít. To stejné funguje i pro služby KDE (KService).
+
 \subsection{KioskTool}
 Aplikace KioskTool umožňovala v KDE 3 spravovat některé specifické části Kiosk
 profilů pomocí grafického rozhraní. Najprve popíši její funkčnost ve verzi pro
 KDE3 za pomocí obrázků, protože tak to bude nejlepší. Také se zmíním
 o nedokončeném pokusu o převedení této aplikace do KDE4 a nedostatcích v obou
 verzích.
-\subsubsection{KDE3 verze}
-IMG uvodni_obrazovka.png
-Úvodní obrazovka ukazuje seznam profilů s jejich popisem.
 
-IMG nastaveni.png
-Je možné nastavit si automatický upload Kiosk profilů na server.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE3/uvodni_obrazovka.png}
+    \caption{Úvodní obrazovka programu}
+    \label{fig:kt3_uvodni}
+\end{figure}
+Úvodní obrazovka \ref{fig:kt3_uvodni} ukazuje seznam profilů s jejich popisem,
+lištu s menu a tlačítka pro manipulaci s profily. Velmi chybí možnost zkopírovat
+již existující profil.
 
-IMG novy_profil.png
-Vytvoření nového profilu. Zde je možné nastavit který uživatel bude vlastnit
-složku s profilem - bude mít přístup pro zápis. Je otázka jestli tohoto půjde
-docílit i pro omezení uložená v KAuthu/polkitu.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE3/nastaveni.png}
+    \caption{Dialogové okno s nastavením}
+    \label{fig:kt3_nastaveni}
+\end{figure}
+Mezi nastavení programu \ref{fig:kt3_nastaveni} patří také možnost automaticky
+uložit profily na vzdálený serber.
 
-IMG prirazeni_profilu.png
-IMG prirazeni_profilu_skupine.png
-IMG prirazeni_profilu_uzivateli.png
-Obrazovka a dialogy pro přiřazení Kiosk profilů skupinám a uživatelům. Platí,
-že když má uživatel přířazen svůj vlastní profil, nevztahují se na něj profily
-pro skupiny kterých je členem.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE3/novy_profil.png}
+    \caption{Dialog pro vytvoření nového profilu}
+    \label{fig:kt3_novyprofil}
+\end{figure}
+Dialog pro vytvoření nového profilu \ref{fig:kt3_novyprofil} je poměrně
+jednoduchý. Umožňuje nastavit název a popis profilu a dále který uživatel bude
+vlastnit složku s profilem (bude mít přístup pro zápis) a kde bude profil
+uložen.
 
-IMG seznam_komponent.png
-Zde se dostáváme k zajímavější části nástroje KioskTool. Je možné z něj spouštět
-KCM moduly a části systému KDE a tak docílit toho, že KioskTool může využít již
-existující funkcionalitu. Není proto nutné znovu 'vymýšlet kolo' a uživatel
-pro nastavení Kiosk profilů používá stejné nástroje jako pro normální nastavení.
-Tato původní verze nástroje KioskTool definuje všechny moduly a jejich
-vlastnosti v jednom velkém XML souboru.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE3/prirazeni_profilu.png}
+    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE3/prirazeni_profilu_skupine.png}
+    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE3/prirazeni_profilu_uzivateli.png}
+    \caption{Dialogy pro přiřazení profilů}
+    \label{fig:kt3_prirazeni}
+\end{figure}
+Při pohledu na obrazovku a dialogy pro přiřazení Kiosk profilů skupinám
+a uživatelům je nutné si připomenout, že když má uživatel přířazen svůj vlastní
+profil, nevztahují se na něj profily pro skupiny kterých je členem. To program
+nijak nezvýrazňuje. Bylo by dobré, kdyby poskytoval nějaký pohled, který by
+ukazoval všechny profily efektivní pro uživatele.
 
-ukazka_komponenty.png
-Zde je vidět jak může taková komponenta vypadat v akci. Uživatel může uzamčít
-obrázek na pozadí plochy a ukázat si náhled tohoto obrázku. Zde by asi bylo
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE3/seznam_komponent.png}
+    \caption{Dialog s nastavením profilu}
+    \label{fig:kt3_nast_prof}
+\end{figure}
+Dialog pru úpravu profilu \ref{fig:kt3_nast_prof} je mohem zajímavější. Je možné
+z něj spouštět KCM moduly a části systému KDE a tak docílit toho, že KioskTool
+může využít již existující funkcionalitu. Není proto nutné znovu 'vymýšlet kolo'
+a uživatel pro nastavení Kiosk profilů používá stejné nástroje jako pro normální
+nastavení. Tato původní verze nástroje KioskTool definuje všechny moduly
+a jejich vlastnosti v jednom velkém XML souboru.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE3/ukazka_komponenty.png}
+    \caption{Dialog jedné komponenty nástroje}
+    \label{fig:kt3_nast_komp}
+\end{figure}
+Na obrázku \ref{fig:kt3_nast_komp} je vidět jak taková komponenta vypadá
+v akci. Uživatel může uzamčít obrázek na pozadí plochy a ukázat si náhled tohoto
+obrázku (náhled ve smyslu, že se pozadí plochy dočasně zamění). Zde by asi bylo
 lepší místo náhledu otvírat KCM modul pro nastavení plochy a případně nějaký
-režim pro rozvržení plasmoidů na ní. Zejména kvůli tomu, že v KDE4 je původně
-jednoduchá plocha nahrazena plochou plasma... a tam se dá nastavovat mnohem více
-a na více místech.
+režim pro rozvržení plasmoidů  na ní. Zejména kvůli tomu, že v KDE4 je původně %!REF! plasma
+jednoduchá plocha nahrazena plochou plasma a tam je mnohem více věcí
+k nastavování.
 
 I při krátké době nutné na seznámení s nástrojem (KioskTool 1.0 v Kubuntu 9.04)
 jsem narazil na fatální chyby, kdy se bez zjevného důvodu zhroutil. Nebude tedy
 možné se spolehnout na korektnost kódu.
-\subsubsection{První pokus o převod nástroje do KDE4}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE4/kiosktool_kde4.png}
+    \caption{=U}
+    \label{fig:kt4_uvod}
+\end{figure}
+
+Port nástroje do KDE4 \ref{fig:kt4_uvod} již existuje, i když je značně
+nedokončený.  %Ref: Kdo portoval, kde lze najít, proč toho nechal tak brzo?
+Původní nastavení pomocí velkého XML souboru bylo odstraněno a nahrazeno mnoha
+menšími .ini soubory. To má za účel umožnit ostatím autorům napsat pro jejich
+aplikace moduly do nástroje KioskTool. Nástroj ztratil většinu svých modulů,
+schopnost spouštět KCM moduly a náhledy, své pěkné (i když zbytečné) obrázkové
+vzezření a získal několik dalších chyb. Zdá se ale, že na něm stále někdo
+pracuje. %ref: Luboš Luňák?
+
+\section{PolicyKit}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8.5cm]{obrazky/polkit-architecture-vector-cz.pdf}
+    \caption{Architektura systému PolicyKit}
+    \label{fig:polkit_arch}
+\end{figure}
+PolicyKit (nebo také polkit), je systém umožňující autentizovat uživatele
+a autorizovat akce, které tito uživatelé provádějí. Je to systém velmi modulární
+a přenechává implementaci mnohých svých funkcí zásuvným modulům a programům,
+které jej využívají.
+
+Mezi nejzákladnější části tohoto systému patří démon polkitd (PolicyKit
+Authority), který se stará o uložení databáze možných akcí a povolení. Další
+částí, implementovanou prostředími jako je Gnome nebo KDE je tzv. autentizační
+agent. To je program, který například uživateli zobrazí okno pro zadání hesla,
+pokud je potřeba ověřit jeho totožnost. Pro ověření se používá pomocný program
+s nastaveným setuid bitem.% REF!
+Třetí komponentou je 'mechanismus' nebo 'pomocník' - zde se jedná o službu pro
+vykonání privilegovaných akcí místo uživatele. Čtvrtou a poslední komponentou
+je Klient - program, který využívá služeb systému PolicyKit. Jednotlivé
+komponenty spolu komunikují pomocí IPC mechanismu DBUS.% REF IPC, REF DBUS!
+
+Nad PolicyKitem je postavena knihovna polkit-qt. Poskytuje v zásadě stejné
+funkce jako PolicyKit a lépe je integruje do prostředí knihoven QT. % REF!
+
+Polkit-kde je nadstavbou nad knihovnou polkit-qt, která implementuje autentizačí
+agent pro prostředí KDE a KCM modul pro úpravu akcí povolených pro uživatele
+a skupiny.
+
+Zatím jediným způsobem uložení povolených akcí v PolicyKitu je tzv. lokální
+autorita. Je to výchozí implementace PolicyKit autority a využívá lokálně
+uložených textových souborů s příponou .pkla. Efektivní seznam povolených akcí
+se získá služením těchto souborů. Je tedy možné mít například jeden soubor
+s výchozím nastavením instalovaný z distribučního balíčku a druhý s lokálním
+nastavením, vytvořený administrátorem.
+
+\begin{figure}[h]
+    \centering
+    \begin{verbatim}
+                   /var/lib/polkit-1
+                   └── localauthority
+                       ├── 10-vendor.d
+                       │   └── 10-desktop-policy.pkla
+                       ├── 20-org.d
+                       ├── 30-site.d
+                       ├── 50-local.d
+                       ├── 55-org.my.company.d
+                       │   └── 10-org.my.company.product.pkla
+                       └── 90-mandatory.d
+
+                   /etc/polkit-1
+                   └── localauthority
+                       ├── 10-vendor.d
+                       │   └── 01-some-changes-from-a-subvendor.pkla
+                       ├── 20-org.d
+                       ├── 30-site.d
+                       ├── 50-local.d
+                       ├── 55-org.my.company.d
+                       │   └── 10-org.my.company.product.pkla
+                       └── 90-mandatory.d
+    \end{verbatim}
+    \caption{Struktura složek pro PolicyKit Local Authority s několika .pkla soubory}
+    \label{fig:pkit_la}
+\end{figure}
+
+Local Authority pro ně zavádí poměrně propracovanou strukturu \ref{fig:pkit_la}.
+Pořadí načítání je určeno řazením složek a souborů v nich podle názvu. Pokud je
+stejně pojmenovaný soubor v obou umístěních (ve /var/lib/ i /etc/), nejdříve se
+zpracuje ten ve /var/.
+%REF: cite man stránka pklocalauthority
+Ve struktuře \ref{fig:pkit_la} by pořadí vypadalo takto:
+\begin{itemize}
+\item 10-desktop-policy.pkla
+\item 01-some-changes-from-a-subvendor.pkla
+\item 10-org.my.company.product.pkla (z /var)
+\item 10-org.my.company.product.pkla (z /etc)
+\end{itemize}
 
 \section{KAuth}
 KAuth je nové rozhraní pro autorizaci v KDE. Je postaveno na již existujících 
-rozhraních v operačních systémech. Podporu pro nová systémová rozhraní je možné
-přidat pomocí zásuvných modulů. Prozatím obsahuje vedle velmi jednoduchých
-testovacích modulů také modul pro polkit (policykit).
+rozhraních v operačních systémech. V OS na bázi Linuxu je to zpravidla
+PolicyKit, v OSX pak framework Authorization Services. Podporu pro nová
+rozhraní je možné přidat pomocí zásuvných modulů.
 
-Pomocí KAuthu je možné autorizovat akce uživatele (plugin se stará o veškeré
-ověřování a poskytuje pro název akce hodnotu true/false. Další možnost
-poskytovaná KAuthem je vytvořit pokud možno co nejjednodušší program, který
-pak bude v odpověď na autorizovanou akci spušťen příslušným pluginem.
-Takovýto program se nazývá KAuth helper. Helper a aplikace která ho využívá
-mohou do jisté míry komunikovat oběma směry a je také možné sledovat průběh
-dlouho trvající akce uvnitř helperu.
+Pomocí KAuthu je možné autorizovat akce uživatele. Zásuvný modul se stará
+o veškeré ověřování akcí. Z pohledu PolicyKitu je zde aplikace používající
+KAuth v roli klienta.
+Další funkce poskytovaná KAuthem je vytvořit pokud možno co nejjednodušší
+program, který pak bude v odpověď na autorizovanou akci spuštěn příslušným
+autorizačním rozhraním. Takovýto program se nazývá KAuth pomocník (helper).
+Pomocník a aplikace která ho využívá mohou do jisté míry komunikovat oběma směry
+a je také možné sledovat průběh dlouho trvající akce uvnitř pomocníka. KAuth
+pomocník je rozšířením PolicyKit pomocníka o tyto zjednodušené komunikační
+funkce.
 
-TODO: jak vypadají KAuth pravidla, jak funguje přesně helper, jak přesně
-se převádí během kompilace (CMake magie).
+Převedení KAuth providel (soubory .actions) a KAuth pomocníků do formy
+srozumitelné pro jednotlivé zásuvné moduly se provádí během kompilace a KAuth
+nepodporuje provádění změn v nich po kompilaci. Také neumožňuje měnit
+autorizované uživatele a skupiny pro akce - to je přenecháno KControl modulu
+pro nastavení PolicyKitu obsaženému v balíku polkit-kde. Další nepodporovanou
+částí je jakákoliv idea bezpečnostních profilů přiřazovaných uživatelům
+a skupinám. Nic takového není ani v PolicyKitu.
 
-Převedení KAuth providel (soubory .actions a KAuth helpery) se provádí během
-kompilace KDE a KAuth nepodporuje tyto věci mimo kompilaci měnit. Také
-neumožňuje měnit autorizované uživatele a skupiny pro akce - to je přenecháno
-zásuvnému modulu. Další nepodporovanou částí je jakákoliv idea bezpečnostních
-profilů přiřazovaných uživatelům a skupinám. Význam této skutečnosti popíši
-v příštích kapitolách.
-
-\section{polkit (dříve PolicyKit)}
-
-\subsection{PolicyKit KCM}
-\section{Další využitelné technologie}
-\subsection{selinux}
-\subsection{AppArmor}
+\subsection{PolicyKit KControl modul (KCM)}
 \chapter{Změny v~KAuthorized, KAuth}
+\section{Slepá ulička: statický .actions soubor a integrace KAuth do KAuthorized}
+\section{Slepá ulička: KConfig uvnitř KAuth pomocníka}
+\section{Řešení}
 \chapter{Úpravy nátroje KioskTool}
+\section{Uživatelské rozhraní}
+\section{Integrace KAuth}
+\section{Spouštění KCM modulů}
+\chapter{Další možný postup a návrh systematických změn v KDE}
 \chapter{Testování a začlenění do KDE}
 \chapter{Závěr}
 \cite{fitWeb}
