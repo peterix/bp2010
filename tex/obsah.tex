@@ -175,38 +175,41 @@ autorizace obecných akcí, KAkcí (KAction), konfiguračních modulů KCM, a p�
 k URL adresám.
 Chybí zde ovšem omezení přístupu ke zdrojům.
 
-\subsubsection{KAkce (KActions) a obecné akce}
-Nastavované ve skupině 'KDE Action Restrictions'.
+KAkce (třída KAction odvozená od QAction z knihovny QT) a obecné akce jsou
+v rámci KDE  činnosti, které může uživatel vykonat v rámci aplikace. Tyto akce
+mají název, který je v Kiosku použit pro jejich autorizaci.
+
+Restrikce akcí jsou nastavovány v konfiguračních souborech ve skupině
+'KDE Action Restrictions'. Zpravidla se jich používá ke schování prvků
+grafického rozhraní které jsou s akcemi provázány. Akce může být
+například otevření menu s nápovědou, změna pozadí na ploše nebo třeba vypnutí
+počítače z menu KDE. Pokud je taková akce zakázána pomocí Kiosku, prvky
+uživatelského rozhraní se nezobrazí (nevytvoří během inicializace aplikace).
+
 Rozdíl mezi obecnou akcí a KAkcí v rámci KAuthorized je mizivý a funkce
 AuthorizeKAction je obal nad authorize(), který před název akce přidá prefix
-'action/'.
+'action/'. Příslušná funkce pak použije globální KConfig objekt aplikace
+k ověření, zda má uživatel tuto akci zakázánu (ve výchozím stavu jsou všechny
+povoleny).
 
-V rámci KDE jsou akce (třída KAction odvozená od QAction z knihovny QT) obecně
-činnosti, které může uživatel vykonat v rámci aplikace. Tyto akce mají název,
-který je v Kiosku použit pro jejich autorizaci. Funkce AuthorizeKAction tedy
-dostane od aplikace název akce, přidá před něj již zmíněný prefix a pokusí se
-o autorizaci pomocí KConfigu.
-Akce může být například otevření menu s nápovědou. Pokud je taková akce zakázána
-pomocí Kiosku, menu se nezobrazí.
+Omezení přístupu ke zdrojům je nastavované ve skupině
+'KDE Resource Restrictions' a umístěné do globálního konfiguračního souboru jako
+je 'kdeglobals'. I když je tato část Kiosku velmi podobná ostatním autorizačním
+funkcím v KAuthorized, není do něj přímo začleněna. Důvodem je, že je úzce
+provázána s třídou KStandardDirs, která tyto omezení zpracovává a používá pro
+vytvoření seznamů složek se zdroji. Seznam těchto omezení je potřeba znát ještě
+před tím, než je zcela načtena konfigurace z prostého důvodu -- je možné omezit
+i zdroj pro konfiguraci.
 
-\subsubsection{Omezení přístupu ke zdrojům}
-Nastavované ve skupině 'KDE Resource Restrictions' a umístěné do globálního
-konfiguračního souboru jako je 'kdeglobals'.
-I když je tato část Kiosku velmi podobná ostatním autorizačním funkcím
-v KAuthorized, není do něj přímo začleněna.
-
-Důvodem je, že je úzce provázána s třídou KStandardDirs, která tyto omezení
-zpracovává a používá pro vytvoření seznamů složek se zdroji. Seznam těchto
-omezení je totiž potřeba znát ještě před tím, než je zcela načtena konfigurace.
 To by však nemělo bránit vytvoření nové funkce pro získání seznamu typu zdrojů
 s omezením přístupu v jmenném prostoru KAuthorized (mohla by například vracet
 QStringList).
 
-\subsubsection{Omezení přístupu k URL}
+\subsubsection{}
 %ref: http://techbase.kde.org/KDE_System_Administration/Kiosk/Introduction#KDE_URL_Restrictions
-Nastavované ve skupině 'KDE URL Restrictions', tyto omezení jsou určeny
-pro zamítnutí přístupu k některým adresám URL. Vstupní parametry jsou seznam
-šestic hodnot a ověřovaná URL.
+Omezení přístupu k URL je nastavováno ve skupině 'KDE URL Restrictions'. Tyto
+omezení jsou určeny pro zamítnutí přístupu k některým adresám URL. Vstupní
+parametry jsou seznam šestic hodnot a ověřovaná URL.
 
 Syntaxe pro takovouto šestici:
 \begin{verbatim}
@@ -232,18 +235,24 @@ rule_6=list,,,,file,,\$TMP,true
 Pravidla 1 a 2 jsou vypnuta, 3 - 6 zakazují otvírat a vypisovat soubory
 v \$HOME a \$TMP.
 
-\subsubsection{Omezení přístupu ke KCM modulům}
-Kde používá třídu KCModule jako základ pro všechny moduly použité v aplikacích
-'Nastavení Systému' a kcmshell. Za pomoci těchto omezení je možné skrýt
-tyto moduly ve zmíněných aplikacích a tam kde je možné je jinak otevřít tak,
-aby je uživatel nemohl otevřít. To stejné funguje i pro služby KDE (KService).
+Po seznámení se s funkcí systému KAuth by z tohoto příkladu mělo být zřejmé, že
+neumí takováto data rozumně uložit. Omezeními na URL se tedy nebudu dále
+zabývat.
+
+KDE používá třídu KCModule jako základ pro všechny moduly použité v aplikacích
+'Nastavení Systému', kcmshell a případně v jiných aplikacích, které používají
+KCM moduly pro úpravu svého nastavení. Za pomoci omezení přístupu ke KCM modulům
+je možné skrýt tyto moduly ve zmíněných aplikacích, aby je uživatel nemohl 
+tevřít. To stejné funguje i pro služby KDE (KService). Omezení se vztahují
+k názvům těchto modulů -- pokud budou moduly přejmenovány, přestanou omezení
+fungovat. V systému KConfig jsou uvedeny ve skupině ''
 
 \subsection{KioskTool}
 Aplikace KioskTool umožňovala v KDE 3 spravovat některé specifické části Kiosk
-profilů pomocí grafického rozhraní. Najprve popíši její funkčnost ve verzi pro
+profilů pomocí grafického rozhraní. Nejprve popíši její funkčnost ve verzi pro
 KDE3 za pomocí obrázků, protože tak to bude nejlepší. Také se zmíním
-o nedokončeném pokusu o převedení této aplikace do KDE4 a nedostatcích v obou
-verzích.
+o již existujícím a nedokončeném pokusu o převedení této aplikace do KDE4
+a nedostatcích v obou verzích. 
 
 \begin{figure}[h]
     \centering
@@ -338,26 +347,67 @@ pracuje. %ref: Luboš Luňák?
 
 \section{PolicyKit}
 \begin{figure}[h]
+    % toto je překreslené z man stránky. Jak citovat?
     \centering
     \includegraphics[width=8.5cm]{obrazky/polkit-architecture-vector-cz.pdf}
     \caption{Architektura systému PolicyKit}
     \label{fig:polkit_arch}
 \end{figure}
-PolicyKit (nebo také polkit), je systém umožňující autentizovat uživatele
-a autorizovat akce, které tito uživatelé provádějí. Je to systém velmi modulární
-a přenechává implementaci mnohých svých funkcí zásuvným modulům a programům,
-které jej využívají.
 
-Mezi nejzákladnější části tohoto systému patří démon polkitd (PolicyKit
-Authority), který se stará o uložení databáze možných akcí a povolení. Další
-částí, implementovanou prostředími jako je Gnome nebo KDE je tzv. autentizační
-agent. To je program, který například uživateli zobrazí okno pro zadání hesla,
-pokud je potřeba ověřit jeho totožnost. Pro ověření se používá pomocný program
-s nastaveným setuid bitem.% REF!
-Třetí komponentou je 'mechanismus' nebo 'pomocník' - zde se jedná o službu pro
-vykonání privilegovaných akcí místo uživatele. Čtvrtou a poslední komponentou
-je Klient - program, který využívá služeb systému PolicyKit. Jednotlivé
-komponenty spolu komunikují pomocí IPC mechanismu DBUS.% REF IPC, REF DBUS!
+PolicyKit (přejmenován na polkit), je systém umožňující autentizovat uživatele,
+autorizovat akce těchto uživatelů a pomocí tzv. mechanismů tyto akce také
+provádět. Je to systém velmi modulární a přenechává implementaci mnoha těchto 
+funkcí zásuvným modulům a programům které jej využívají. Pro každý typ rozšíření
+PolicyKitu existuje knihovna. Jednotlivé komponenty pak spolu komunikují pomocí
+IPC mechanismu DBUS (ať už přímo nebo prostřednictvím knihoven).
+
+Mezi nejzákladnější části tohoto systému patří démon polkitd, implementující
+část PolicyKit Authority. Ta se stará o uložení databáze možných akcí
+a povolení a slouží jako centrální prvek celého systému.
+
+Další částí, implementovanou prostředími jako je Gnome nebo KDE je tzv.
+autentizační agent. To je program, který například uživateli zobrazí okno pro
+zadání hesla, pokud je potřeba ověřit jeho totožnost. Pro samotné ověření je
+možné použít pomocný program běžící se superuživatslkými právy a používající
+k ověření systém jako je PAM. To ale není striktně vyžadováno. Lze i jen
+zobrazit obyčejné okno s dotazem typu Ano/Ne.% REF! REF! REF!
+
+Třetí komponentou je 'mechanismus' nebo 'pomocník' -- zde se jedná o službu pro
+vykonání privilegovaných akcí místo uživatele, který o provedení akce žádá.
+Čtvrtou a poslední komponentou je klient -- program, který využívá služeb
+systému PolicyKit.
+% REF IPC, REF DBUS!
+
+Průběh akcí v systému pro volání funkce pomocníka může vypadat napříklat takto:
+\begin{itemize}
+\item Uživatel se přihlásí, je nastartováno sezení KDE a s ním i autentizační
+agent
+\item Autentizační agent se registruje u PolicyKit autority
+\item Uživatel spustí program, který využívá služeb PolicyKitu
+\item Program zavolá funkci pomocníka přes systém DBUS
+\item DBUS démon nastartuje program pomocníka, pokud již neběží (pomocník musí
+být v systému DBUS registrován)
+\item Spuštěný pomocník se zeptá PolicyKit autority, jestli je volaná akce
+autorizována
+\item PK autorita zkontroluje, jestli je již tato akce autorizována (autorizace
+může mít například platnost pro celé sezení). Pokud není zatím autorizována,
+zjistí jakým způsobem se má dosáhnout autorizace.
+\item Pokud je to nutné, zavolá PK autorita autentizačního agenta. Zobrazí se
+například okno, kde má uživatel zadat své login údaje. Je možné ověřovat buď
+pouze identitu uživatele, kdy stačí, že se přihlásí pod vlastním účtem,
+nebo je možné vyžadovat přihlášení účtu se superuživatslkými právy.
+\item Uživatel se přihlásí (záleží na tom jaký mechanismus k tomu agent
+používá).
+\item Agent oznámí autoritě jestli byla autentizace úspěšná.
+\item Autorita vrací výsledek autorizace a uloží si ho do cache po dobu její
+platnosti.
+\item Pokud byl proces autorizacu úspěšný, pomocník provede požadovanou akci.
+\item V tomto bodě může pomocník notifikovat program o výsledku akce.
+\end{itemize}
+
+Toto samozřejmně není jedniný možný průběh. Vše záleží na implementaci
+jednotlivých komponent. Jak jsem již uvedl, PolicyKit je velmi modulární systém
+a většinu jeho částí lze nahradit nebo rozšířit.
 
 Nad PolicyKitem je postavena knihovna polkit-qt. Poskytuje v zásadě stejné
 funkce jako PolicyKit a lépe je integruje do prostředí knihoven QT. % REF!
@@ -367,7 +417,7 @@ agent pro prostředí KDE a KCM modul pro úpravu akcí povolených pro uživate
 a skupiny.
 
 Zatím jediným způsobem uložení povolených akcí v PolicyKitu je tzv. lokální
-autorita. Je to výchozí implementace PolicyKit autority a využívá lokálně
+autorita. Je to výchozí implementace PolicyKit Autority a využívá lokálně
 uložených textových souborů s příponou .pkla. Efektivní seznam povolených akcí
 se získá služením těchto souborů. Je tedy možné mít například jeden soubor
 s výchozím nastavením instalovaný z distribučního balíčku a druhý s lokálním
@@ -403,11 +453,11 @@ nastavením, vytvořený administrátorem.
 \end{figure}
 
 Local Authority pro ně zavádí poměrně propracovanou strukturu \ref{fig:pkit_la}.
-Pořadí načítání je určeno řazením složek a souborů v nich podle názvu. Pokud je
-stejně pojmenovaný soubor v obou umístěních (ve /var/lib/ i /etc/), nejdříve se
-zpracuje ten ve /var/.
+Pořadí načítání je určeno lexikografickým řazením složek a souborů v nich.
+Pokud je stejně pojmenovaný soubor v obou umístěních (ve /var/lib/ i /etc/),
+nejdříve se zpracuje ten ve /var/.
 %REF: cite man stránka pklocalauthority
-Ve struktuře \ref{fig:pkit_la} by pořadí vypadalo takto:
+Ve struktuře \ref{fig:pkit_la} by pořadí zpracování vypadalo takto:
 \begin{itemize}
 \item 10-desktop-policy.pkla
 \item 01-some-changes-from-a-subvendor.pkla
@@ -415,11 +465,13 @@ Ve struktuře \ref{fig:pkit_la} by pořadí vypadalo takto:
 \item 10-org.my.company.product.pkla (z /etc)
 \end{itemize}
 
+%TODO: jak vypadá .pkla soubor, jak se zpracovává
+
 \section{KAuth}
 KAuth je nové rozhraní pro autorizaci v KDE. Je postaveno na již existujících 
 rozhraních v operačních systémech. V OS na bázi Linuxu je to zpravidla
-PolicyKit, v OSX pak framework Authorization Services. Podporu pro nová
-rozhraní je možné přidat pomocí zásuvných modulů.
+PolicyKit, v OSX pak framework Authorization Services. Podporu pro nová rozhraní
+je možné přidat pomocí zásuvných modulů.
 
 Pomocí KAuthu je možné autorizovat akce uživatele. Zásuvný modul se stará
 o veškeré ověřování akcí. Z pohledu PolicyKitu je zde aplikace používající
@@ -432,19 +484,119 @@ a je také možné sledovat průběh dlouho trvající akce uvnitř pomocníka. 
 pomocník je rozšířením PolicyKit pomocníka o tyto zjednodušené komunikační
 funkce.
 
-Převedení KAuth providel (soubory .actions) a KAuth pomocníků do formy
-srozumitelné pro jednotlivé zásuvné moduly se provádí během kompilace a KAuth
-nepodporuje provádění změn v nich po kompilaci. Také neumožňuje měnit
-autorizované uživatele a skupiny pro akce - to je přenecháno KControl modulu
-pro nastavení PolicyKitu obsaženému v balíku polkit-kde. Další nepodporovanou
+Další službou KAuthu je registrace pomocníků a akcí v jeho jednotlivých
+zásuvných modulech. Uživatel KAuthu tedy specifikuje, jaké akce a pomocníky chce
+použít a při kompilaci budou převedeny do formy srozumitelné pro jeho zásuvné
+moduly.
+
+KAuth nepodporuje provádění změn v nich po kompilaci. Také neumožňuje měnit
+autorizované uživatele a skupiny pro akce -- to je zcela přenecháno systémům pro
+autorizaci, které využívá. V případě PolicyKitu je toto nastavní realizováno
+v KControl modulu, který používá přímo knihovnu polkit-qt. Další nepodporovanou
 částí je jakákoliv idea bezpečnostních profilů přiřazovaných uživatelům
-a skupinám. Nic takového není ani v PolicyKitu.
+a skupinám. Nic takového konec konců není ani v PolicyKitu, který byl KAuthu
+modelem. Toto jsou celkem závažné nedostatky, které budu muset nějak vyřešit.
 
 \subsection{PolicyKit KControl modul (KCM)}
 \chapter{Změny v~KAuthorized, KAuth}
-\section{Slepá ulička: statický .actions soubor a integrace KAuth do KAuthorized}
-\section{Slepá ulička: KConfig uvnitř KAuth pomocníka}
+První skutečnou částí projektu je zjistit jak nejlépe integrovat systém KAuth do
+rozhraní KAuthorized. Toto není triviální úkol a nějakou dobu mi trvalo, než
+jsem přišel na to, jak toho docílit. Začnu popisem dvou variant, které jsem
+musel pro závažné nedostatky zavrhnout (postupně jak jsem analyzoval jednotlivé 
+využitelné technologie). Třetí variantu, kterou budu implementovat, popisuji
+ve třetí sekci kapitoly.
+\section{Slepé uličky}
+Můj první a také nejjednodušší nápac byl vytvřit statický .actions soubor
+a integrace KAuth přímo do KAuthorized. V zásadě by toto mohlo fungovat a je
+to částí řešení.
+
+Prvním problémem je, že neexistuje definitivní seznam možných restrikcí akcí
+a zdrojů v Kiosk profilech. Toto by šlo řešit tak, že každý program KDE by tyto
+své akce a zdroje specifikoval v .actions souboru k tomu určeném a zahrnul by
+jeho překlad do KAuthem podporovaných systémů do svého sestavení. To ovšem
+vylučuje jakoukoliv možnost stejné úrovně podpory pro aplikace, které by takto
+akce nespecifikovaly.
+
+Druhým problémem je neexistence možnosti nastavit autorizované akce pro
+uživatele a skupiny pomocí KAuthu. Nejen že nejdou nastavit, KAuth navíc nemá
+ani žádné ponětí o něčem, co by alespoň vzdáleně připomínalo způsob jakým
+se aplikují Kiosk profily. V případě použití PolicyKitu tyto vcelku základní
+funkce nemé ve formě knihovny žádná vrstva - PolicyKit, polkit-qt, polkit-kde
+ani KAuth.
+
+Řešení tedy musí vypadat velmi odlišně.
+
+Druhý nápad byl takovýto: když KAuth nepodporuje nic z toho, co by korektní
+implementace vyžadovala, bude nutné to nějak obejít, a to co nejjednodušším
+způsobem, aby zbytečně nedošlo k zavlečení chyb.
+
+Takovým možným řešením je jednoduše se vzdát toho, že budeme mapovat akce mezi
+Kioskem a KAuthem jedna ku jedné. Mělo by být přece možné umístit do KAuth
+pomocníka instanci KConfigu, která načte požadovaný Kiosk profil a bude přes
+systém DBUS umožovat dotazování se na jednotlivé hodnoty v nich. Bylo by také
+možné tyto hodnoty měnit. V podstatě by to byl stále pouze KConfig, jen obalen
+v pomocníkovi.
+
+Problémy tohoto řešení nemusejí být zcela zjevné, pokusím se je ale popsat.
+Za prvé -- nezíská se tím vůbec žádná výhoda z pohledu bezpečnosti. Kiosk
+profily musejí stále zůstat čitelné pro všechny uživatele, jinak by se
+nenačetly při spuštění programů nemohly načíst a tím by byly zcela neefektivní.
+Odpadá tak výhoda KAuthu, kde jak seznam restrikcí, tak jaké restrikce pro koho
+platí může být skryt před uživateli. Například při použití PolicyKit Local
+Authority je možné nastavit všechny soubory čitelné jenom superuživatelem.
+
+Za druhé -- KAuth pomocníci mají omezenou životnost. Pokud nejsou využíváni po
+dobu deseti vteřin, jsou ukončeni. Znamená to znovu načíst celý KConfig objekt.
+I když je toto načítání vysoce optimalizováno, stále je vcelku zbytečné načítat
+celou konfiguraci dvakrát - jednou v programu, který by volal KAuthorized
+a podruhé v KAuth pomocníkovi. Sdílet zde jeden objekt například umístěním
+do sdílené paměti by byl holý nesmysl, takže se taková věc ještě více prodraží
+-- použijeme až dvakrát více paměti.
+Toto všechno by šlo obejít, ale výsledek by neměl žádný smysl a jeho šance na
+integraci do KDE by byla prakticky nulová.
+
+Dalším problémem je, že takto nezískáme ani jiné výhody KAuthu. Za zmínku stojí
+například integrace s instalovaným systémem správy autorizací. Jediné co přibude
+je jeden program a několik málo akcí které podporuje.
+
+Je tu ještě jeden problém -- KAuth podporuje použití pomocníků pouze
+v kombinaci se systéme PolicyKit a DBUS. Uživatelé Windows a OSX mají smůlu.
+Tomu se asi nevyhneme.
+
+Je vidět, že ani tudy cesta nevede. Jak tedy postupovat když se zadání zdá být
+nesplnitelné?
+
 \section{Řešení}
+Řešení by tu bylo, i když nebude až tak pěkné jak by mohlo být, kdyby KAuth
+podporoval zápis autorizací jakožto knihovní funkci.
+
+Začneme se specifikacemi akcí u jednotlivých programů. Definovat je centrálně
+by nevedlo k ničemu dobrému. Každý softwarový balík a program v KDE tedy bude
+muset specifikovat své akce a zdroje ve formě srozumitelné pro KAuth - .actions
+souborem. Jedná se o zdroj dat specifický pro aplikaci a jakékoliv akce, které
+implementuje nad rámec standardních akcí obsažených v KDE.
+
+Dále je potřeba implementovat konvertor Kiosk profilů na nastavení lokálního
+systému pro autorizaci. Zde se budu muset držet PolicyKitu, protože jediný další
+podporovaný systém je ***BLA BLA OSX APPLE BLA BLA***, a tento hardware je pro
+mě na této úrovni nepřístupný (na testování je potřeba superuživatelká práva).
+Takovýto konvertor by měl umět běžet jak KAuth pomocník i jako samostatný
+program spustitelný superuživatelem z příkazové řádky. Konverze z Kioks profilů
+bude jednosměrná, bude používat polkit-qt pro získání seznamu podporovaných
+restrikcí a bude produkovat soubory .pkla, použitelné jen a pouze v PolicyKit
+Local Authority. Takovýto konvertor by bylo možné, až bude stabilní, integrovat
+do KAuthu nebo policykit-kde.
+
+Omezení konvertotu je zjevné - pokud bude použit jiná autorita než PolicyKit
+Local Authority, konverze nebude fungovat. To stejné při použití jiného
+mechanismu než je PolicyKit.
+
+Je nutné zohlednit to, že postup aplikace profilů v Kiosku je jiný než postup
+ověření autorizace v PolicyKitu. Musí se 'nasimulovat' Kiosk a jeho zvláštnosti,
+aby se nezměnilo chování KAuthorized.
+
+
+
 \chapter{Úpravy nátroje KioskTool}
 \section{Uživatelské rozhraní}
 \section{Integrace KAuth}
