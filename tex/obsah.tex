@@ -98,17 +98,20 @@ Každá KDE aplikace má několik základních částí, obsažených ve struktu
 
 KGlobal je jmenný prostor obalující přístup k dalším komponentám a sdíleným
 zdrojům v rámci aplikace.
+
 KComponentData obsahuje informace relevantní pro jednu komponentu aplikace.
 Platí, že aplikace může mít jednu hlavní komponentu.
+
 KAboutData obsahuje základní informace o programu komponentě -- v případě hlavní
 komponenty jsou tyto informace použity také pro dialog 'O Aplikaci' (About).
 Je nutno poznamenat, že aplikace může mít více než jednu komponentu.
-KSharedConfig zajišťuje, že konfigurace je sdílena mezi komponentami -- šetří
-se tak pamětí a CPU časem nutným k načtení konfigurace.
 
-KStandardDirs slouží k určení, které složeky budou použity jako zdroj dat
+KSharedConfig obsahuje sloučenou konfiguraci, efektivní pro program a zajišťuje,
+že konfigurace je sdílena mezi komponentami -- šetří se tak pamětí a časem
+nutným k načtení konfigurace.
+
+KStandardDirs slouží k určení, které složky budou použity jako zdroj dat
 a konfigurace pro aplikaci.
-KSharedConfig obsahuje sloučenou konfiguraci, efektivní pro program.
 
 Právě KStandardDirs a KSharedConfig jsou relevantní pro popis načítání
 konfigurace. Během inicializace komponenty se nejdříve načítá obecná konfigurace
@@ -193,13 +196,13 @@ k ověření, zda má uživatel tuto akci zakázánu (ve výchozím stavu jsou v
 povoleny).
 
 Omezení přístupu ke zdrojům je nastavované ve skupině
-'KDE Resource Restrictions' a umístěné do globálního konfiguračního souboru jako
-je 'kdeglobals'. I když je tato část Kiosku velmi podobná ostatním autorizačním
-funkcím v KAuthorized, není do něj přímo začleněna. Důvodem je, že je úzce
-provázána s třídou KStandardDirs, která tyto omezení zpracovává a používá pro
-vytvoření seznamů složek se zdroji. Seznam těchto omezení je potřeba znát ještě
-před tím, než je zcela načtena konfigurace z prostého důvodu -- je možné omezit
-i zdroj pro konfiguraci.
+'KDE Resource Restrictions' a je umístěno do globálního konfiguračního souboru
+jako je 'kdeglobals'. I když je tato část Kiosku velmi podobná ostatním
+autorizačním funkcím v KAuthorized, není do něj přímo začleněna. Důvodem je, že
+je úzce provázána s třídou KStandardDirs, která tyto omezení zpracovává
+a používá pro vytvoření seznamů složek se zdroji. Seznam těchto omezení je
+potřeba znát ještě před tím, než je zcela načtena konfigurace z prostého důvodu
+-- je možné omezit i zdroj pro konfiguraci.
 
 To by však nemělo bránit vytvoření nové funkce pro získání seznamu typu zdrojů
 s omezením přístupu v jmenném prostoru KAuthorized (mohla by například vracet
@@ -243,9 +246,9 @@ KDE používá třídu KCModule jako základ pro všechny moduly použité v apl
 'Nastavení Systému', kcmshell a případně v jiných aplikacích, které používají
 KCM moduly pro úpravu svého nastavení. Za pomoci omezení přístupu ke KCM modulům
 je možné skrýt tyto moduly ve zmíněných aplikacích, aby je uživatel nemohl 
-tevřít. To stejné funguje i pro služby KDE (KService). Omezení se vztahují
+otevřít. To stejné funguje i pro služby KDE (KService). Omezení se vztahují
 k názvům těchto modulů -- pokud budou moduly přejmenovány, přestanou omezení
-fungovat. V systému KConfig jsou uvedeny ve skupině ''
+fungovat. V systému KConfig jsou uvedeny ve skupině 'KDE Control Module Restrictions'.
 
 \subsection{KioskTool}
 Aplikace KioskTool umožňovala v KDE 3 spravovat některé specifické části Kiosk
@@ -305,11 +308,11 @@ ukazoval všechny profily efektivní pro uživatele.
     \label{fig:kt3_nast_prof}
 \end{figure}
 Dialog pru úpravu profilu \ref{fig:kt3_nast_prof} je mohem zajímavější. Je možné
-z něj spouštět KCM moduly a části systému KDE a tak docílit toho, že KioskTool
-může využít již existující funkcionalitu. Není proto nutné znovu 'vymýšlet kolo'
-a uživatel pro nastavení Kiosk profilů používá stejné nástroje jako pro normální
-nastavení. Tato původní verze nástroje KioskTool definuje všechny moduly
-a jejich vlastnosti v jednom velkém XML souboru.
+z něj spouštět KCM moduly a jiné části systému KDE a tak docílit toho,
+že KioskTool může využít již existující funkcionalitu. Není proto nutné znovu
+'vymýšlet kolo' a uživatel pro nastavení Kiosk profilů používá stejné nástroje
+jako pro normální nastavení. Tato původní verze nástroje KioskTool definuje
+všechny moduly a jejich vlastnosti v jednom velkém XML souboru.
 
 \begin{figure}[h]
     \centering
@@ -349,7 +352,7 @@ pracuje. %ref: Luboš Luňák?
 \begin{figure}[h]
     % toto je překreslené z man stránky. Jak citovat?
     \centering
-    \includegraphics[width=8.5cm]{obrazky/polkit-architecture-vector-cz.pdf}
+    \includegraphics[width=12cm]{obrazky/polkit-architecture-vector-cz.pdf}
     \caption{Architektura systému PolicyKit}
     \label{fig:polkit_arch}
 \end{figure}
@@ -594,7 +597,6 @@ mechanismu než je PolicyKit.
 Je nutné zohlednit to, že postup aplikace profilů v Kiosku je jiný než postup
 ověření autorizace v PolicyKitu. Musí se 'nasimulovat' Kiosk a jeho zvláštnosti,
 aby se nezměnilo chování KAuthorized.
-
 
 
 \chapter{Úpravy nátroje KioskTool}

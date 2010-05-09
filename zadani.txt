@@ -1,0 +1,10 @@
+Rodičovský mód v KDE
+
+1. Prozkoumejte Kiosk a KAuth a stanovte, jakým způsobem dále postupovat
+2. Upravte KAuthorized (kdelibs/kdecore/kernel/kauthorized.h) tak, aby využíval KAuth pro akce a zdroje dat
+3. Převeďte nástroj KioskTool do KDE4, vylepšete jeho grafické rozhraní a implementujte funkce nutné pro jednoduchou práci s novou konfigurací Kuisku na bázi KAuth
+4. Vytvořte malý nástroj pro migraci starého Kiosk nastavení do nového formátu (může být integrován v nástroji KioskTool).
+5. Vytvořte testy ověřující funkčnost nové metody.
+6. Připravte kód pro začlenění do KDELibs.
+
+Základní reference zůstávají stejné.
