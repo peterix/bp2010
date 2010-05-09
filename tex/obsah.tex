@@ -569,34 +569,45 @@ Tomu se asi nevyhneme.
 Je vidět, že ani tudy cesta nevede. Jak tedy postupovat když se zadání zdá být
 nesplnitelné?
 
-\section{Řešení}
-Řešení by tu bylo, i když nebude až tak pěkné jak by mohlo být, kdyby KAuth
-podporoval zápis autorizací jakožto knihovní funkci.
+\section{Možné řešení}
+Řešení nebude až tak pěkné jak by mohlo být, kdyby KAuth podporoval zápis
+autorizací jakožto knihovní funkci.
 
 Začneme se specifikacemi akcí u jednotlivých programů. Definovat je centrálně
-by nevedlo k ničemu dobrému. Každý softwarový balík a program v KDE tedy bude
+tak, aby se instalovaly spolu s KioskTool nástrojem by nevedlo k ničemu dobrému
+(někdo by je musel udržovat). Každý softwarový balík a program v KDE tedy bude
 muset specifikovat své akce a zdroje ve formě srozumitelné pro KAuth - .actions
 souborem. Jedná se o zdroj dat specifický pro aplikaci a jakékoliv akce, které
-implementuje nad rámec standardních akcí obsažených v KDE.
+implementuje nad rámec standardních akcí obsažených v KDE. Použití KAuth
+by nemělo být povinné a mělo by být zachováno chování rozhraní KAuthorized pokud
+možno tak, aby se z pohledu aplikací nic nezměnilo.
 
 Dále je potřeba implementovat konvertor Kiosk profilů na nastavení lokálního
 systému pro autorizaci. Zde se budu muset držet PolicyKitu, protože jediný další
-podporovaný systém je ***BLA BLA OSX APPLE BLA BLA***, a tento hardware je pro
-mě na této úrovni nepřístupný (na testování je potřeba superuživatelká práva).
+podporovaný systém je Authorization Services v operačním systému Apple OSX.
+Hardware potřebný pro legální provoz OSX bohužel nemám.
 Takovýto konvertor by měl umět běžet jak KAuth pomocník i jako samostatný
-program spustitelný superuživatelem z příkazové řádky. Konverze z Kioks profilů
+program spustitelný superuživatelem z příkazové řádky. Konverze z Kiosk profilů
 bude jednosměrná, bude používat polkit-qt pro získání seznamu podporovaných
 restrikcí a bude produkovat soubory .pkla, použitelné jen a pouze v PolicyKit
-Local Authority. Takovýto konvertor by bylo možné, až bude stabilní, integrovat
-do KAuthu nebo policykit-kde.
+Local Authority. Konvertor by mělo být možné, až bude stabilní, integrovat
+do KAuthu nebo balíku policykit-kde.
 
-Omezení konvertotu je zjevné - pokud bude použit jiná autorita než PolicyKit
-Local Authority, konverze nebude fungovat. To stejné při použití jiného
-mechanismu než je PolicyKit.
+Omezení konvertoru je zjevné -- pokud bude použita jiná autorita než PolicyKit
+Local Authority, konverze s ní nebude fungovat. Vzhledem k tomu, že tato
+autorita je výchozí, předpokládám, že bude k dispozici.
 
-Je nutné zohlednit to, že postup aplikace profilů v Kiosku je jiný než postup
-ověření autorizace v PolicyKitu. Musí se 'nasimulovat' Kiosk a jeho zvláštnosti,
-aby se nezměnilo chování KAuthorized.
+V konvertoru je nutné zohlednit to, že postup aplikace profilů v Kiosku je jiný
+než postup ověření autorizace v PolicyKitu. Musí se 'nasimulovat' Kiosk a jeho
+zvláštnosti, aby se nezměnilo chování KAuthorized.
+
+Integrace KAuth do KAuthorized by měla být triviální záležitost -- otázka
+několika volání funkcí KAuth. Musí se počítat s tím, že KAuth nemusí být
+funkční (je v nové verzi použité pro tuto práci stále ještě nestabilní) nebo že
+konvertor zatím nikdy nebyl spuštěn a v těchto případech použít normální
+nastavení Kiosk profilu přes KConfig.
+
+\section{Implementace konvertoru}
 
 
 \chapter{Úpravy nátroje KioskTool}
