@@ -304,7 +304,7 @@ Práce je chráněna autorským zákonem a její užití bez udělení oprávně
 \fontfamily{phv}\selectfont%
 \newsavebox{\@obrlogo}\newsavebox{\@rtext}\newlength{\@vyskartext}\newlength{\@vyskaobr}%
 
-\savebox{\@obrlogo}{\includegraphics[width=3.5cm,keepaspectratio]{fig/vut-zp2}}%logo VUT
+\savebox{\@obrlogo}{\includegraphics[width=3.5cm,keepaspectratio]{fig/vut-zp2.pdf}}%logo VUT
 \savebox{\@rtext}{\vbox{\mkuctxt{18}{\@vut@CS}\mkuctxt{11}{\@vut@EN}}}%text VUT
 \settoheight{\@vyskaobr}{\makebox{\usebox{\@obrlogo}}}% vyska loga
 \settoheight{\@vyskartext}{\makebox{\usebox{\@rtext}}}% vyska textu
@@ -313,7 +313,7 @@ Práce je chráněna autorským zákonem a její užití bez udělení oprávně
 
 \vspace{5mm}
 
-\savebox{\@obrlogo}{\includegraphics[width=3.5cm,keepaspectratio]{fig/fit-zp2}}%logo FIT
+\savebox{\@obrlogo}{\includegraphics[width=3.5cm,keepaspectratio]{fig/fit-zp2.pdf}}%logo FIT
 \savebox{\@rtext}{%text FIT, USTAV
 \vbox{\mkuctxt{14}{\@fit@CS}\mkuctxt{14}{\@departmentname@CS}
 \vspace{3mm}
