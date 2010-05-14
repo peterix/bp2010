@@ -27,13 +27,14 @@ provozovat na více operačních systémech. Aplikace by tak musely používat �
 jako je UAC nebo PolicyKit, což by omezilo jejich přenositelnost. Tyto řešení
 tedy bylo potřeba nějak obalit. Za tímto účelem vzniklo rozhraní KAuth>citace<.
 
-V~rámci KDE však bylo možné již dřive měnit práva uživatelů - skrývat položky
+V~rámci KDE však bylo možné již dřive měnit práva uživatelů -- skrývat položky
 menu, zamezit použití terminálu a~podobně. K~tomu slouží Kiosk>citace<
 -- kombinace vlastností několika systémů obsažených v~KDE.
 
 Tyto technologie a~způsob jakým budou v~práci využity jsou blíže popsány ve
 druhé kapitole>ref<.
 
+Třetí kapitola popisuje integraci systému KAuth do rozhraní KAuthorized ()
 Cílem této práce je:
 \begin{itemize}
 \item Změnit API KAuthorized tak, aby používalo KAuth pro akce a~zdroje (Actions
@@ -661,10 +662,6 @@ Poslední položkou skupiny je Persistence - ta je nepovinná a~udává, na jak
 dlouho bude autorizace udělena. Možnostmi jsou 'session', kdy bude platit dokud
 se neodhlásí a~'always', kdy nebude omezena.
 
-
-\subsection{PolicyKit KControl modul (KCM)}
-
-
 \chapter{Integrace KAuth do KAuthorized}
 První praktickou částí projektu je zjistit jak nejlépe integrovat systém KAuth
 do rozhraní KAuthorized. Toto není triviální úkol a~nějakou dobu mi trvalo, než
@@ -950,34 +947,76 @@ KAuthorized::getRestrictedResourcesFromConfigGroup(const KConfig* config)
 \end{lstlisting}
 
 \section{Specifikace omezení akcí a zdrojů}
-Ke specifikaci akcí v systému KAuth budou využity statické .actions soubory.
-Nevýhody tohoto řešení jsem již uvedl, ale jinak to nejde.
-
-Jako základní jmenný prostor jsem se rozhodl použít org.kde.kiosk. Pro akce jsem
-se rozhodl pro org.kde.kiosk.action a pro zdroje org.kde.kiosk.resource.
+Ke specifikaci akcí v systému KAuth jsou využity statické .actions soubory.
+Nevýhody tohoto řešení jsem již uvedl, ale jinak to nejde. Jako základní jmenný
+prostor jsem se rozhodl použít org.kde.kiosk. Pro akce jsem se rozhodl pro
+org.kde.kiosk.action a pro zdroje org.kde.kiosk.resource.
 
 Názvy akcí a zdrojů nemohou obsahovat jiné znaky než malá písmena a číslice. Je
 tedy nutné přeložit jejich skutečné názvy do formy, kterou je KAuth schopen
-použít.
-
-Z akce 'action/help' se tak stane 'actionhelp', společně se jmenným prostorem
-pak 'org.kde.kiosk.action.actionhelp'. Kdyby axitovala jiná akce s názvem 
-'action\_help', došlo by ke kolizi.
-
-
+použít. Z akce 'action/help' se tak stane 'actionhelp', společně se jmenným
+prostorem pak 'org.kde.kiosk.action.actionhelp'. Kdyby exitovala jiná akce
+s názvem  'action\_help', došlo by ke kolizi.
 
 \section{Implementace konvertoru}
 
-\section{Implementace konvertoru}
+!TODO: SEM OBR. S PROFILY A UŽIVATELI, možná call graph konvertoru
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8.5cm]{obrazky/profily.pdf}
+    \caption{Aplikace Kiosk profilů}
+    \label{fig:konv_profily}
+\end{figure}
+
+Konvertor se skládá ze dvou částí. Hlavní a nejdůležitější částí je pomocník,
+postavený na knihovně KAuth. Ten implementuje veškeré funkce celku (ve zdrojovém
+kódu je to kdelibs/kdecore/auth/kioskpklahelper.cpp). Druhou částí je jednoduchý
+terminálový program, který není až na spuštění pomocníka přes KAuth příliš
+zajímavý (ve zdrojových kódech je to kioskpklaconvert.cpp ve stejné
+složce jako pomocník).
+
+Konvertor funguje tak, že nejdříve získá ze souboru /etc/kde4rc nastavení
+Kiosku, pomocí něj vyhledá Kiosk profily, komu a jakým skupinám jsou přiřazeny
+a jaké je pořadí skupin při zpracování skupinových profilů. Je také získán
+seznam akcí známých v PolicyKit1 Local Authority. Tento seznam se filtruje do
+dvou skupin podle jemnných prostorů použitých pro omezení na akce a zdroje.
+Toto jsou základní vstupní parametry programu. Uživatel nemá možnost do procesu
+přímo zasáhnout -- program nemá žádné uživatelské vstupy.
+
+Další částí je vytvoření .pkla souboru ze skupinových profilů. V pořadí
+zjištěném z nastavení Kiosku se z nich pomocí KConfigu načtou soubory globálního
+nastavení kdeglobals. Z těch jsou dále vytaženy skupiny KDE~Action~Restrictions
+a KDE~Resource~Retrictions. Klíče jejich položek jsou zpracovány stejně jako
+specifikace v .actions souborech. Upravené klíče společně s jejich hodnotami
+a přiřazenou skupinou pak tvoří záznamy ukládané do .pkla souboru pro skupiny.
+Soubor je uložen tak, aby byl zpracován dříve než soubory pro jednotlivé
+uživatele (jsou načítány v lexikografické pořadí podle názvu).
+
+Dalším bodem je zpracování profilů přiřazených uživatelům. Postup je z části
+podobný jako u bodu předchozího, ale platí, že na uživatele s nastaveným
+uživatelským Kiosk profilem se skupinové profily nevztahují. Znamená to, že
+každý uživatel musí mít specifikovány všechny akce ve výchozím stavu (povoleno).
+K tomu se dále přidávájí omezení z uživatelského profilu. Ve výsledku se tak
+vyruší vliv skupinových profilů. Pro každého uživatele je zvlášť vytvořen .pkla
+soubor.
+
+Problémem řešení je zejména nemožnost reprezentace vlastnosti nezměnitelnosti
+z KConfigu. Omezení jsou jednou specifikována jako hodnota ano/ne v nastavení
+PolicyKit Local Authority a jsou tak z pohledu KConfigu nezměnitelná. Jedinou
+možností jak docílit toho, aby byla změnitelná je nezanést ji do PolicyKitu.
+Pak ale není možné s nimi v něm pracovat. Když je jednou akce jako 'action/help'
+pro ukázání menu s nápovědou zanesena do KAuthu/Policykitu, ztrácí nad ní
+uživatel kontrolu a nemůže tak menu schovat. To je poměrně závažný nedostatek.
+
 % svn://svn.kde.org/home/kde/trunk/extragear/base/polkit-kde-1/
+\section{Integrace KAuth do KAuthorized}
+
 
 
 \chapter{Nástroj KioskTool}
-
-\section{Uživatelské rozhraní}
+\section{Nutné opravy}
+\section{Návrh možných změn uživatelského rozhraní}
 \section{Integrace KAuth}
-\section{Spouštění KCM modulů}
-\chapter{Další možný postup a~návrh systematických změn v~KDE}
 \chapter{Testování}
 \chapter{Závěr}
 \cite{fitWeb}
