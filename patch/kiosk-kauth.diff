@@ -1,0 +1,1016 @@
+Index: org.kde.kiosk.action.actions
+===================================================================
+--- org.kde.kiosk.action.actions	(revision 0)
++++ org.kde.kiosk.action.actions	(revision 0)
+@@ -0,0 +1,89 @@
++[Domain]
++Name=Kiosk action restrictions
++Icon=kioks-actions
++URL=http://techbase.kde.org/
++
++[org.kde.kiosk.action.plasmadesktopscriptingconsole]
++Name=Allow using the Plasma scripting console
++Description=Trying to run the Plasma scripting console
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.runcommand]
++Name=Allow running commands from KRunner
++Description=Trying to run a command from KRunner
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.switchuser]
++Name=Allow switching to another user
++Description=Trying to switch to another user
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.lockscreen]
++Name=Allow locking the screen
++Description=Trying to lock the screen
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.rundesktopfiles]
++Name=Allow the user to run .desktop files
++Description=Trying to run a .desktop file
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.shellaccess]
++Name=Allow access to a shell in KDE
++Description=Trying to open a shell in KDE
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.editabledesktopicons]
++Name=Allow the user to change Plasma applets
++Description=Kiosk is probing if the user is allowed to change Plasma applets
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.actionkdesktoprmb]
++Name=Allow the user to use the right mouse button menu on the desktop
++Description=Kiosk is probing if the user is allowed to use the right mouse button menu on the desktop
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.movabletoolbars]
++Name=Allow toolbars to be rearranged by the user
++Description=Kiosk is probing if the user is allowed to rearrange toolbars
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.plasmaallowconfigurewhenlocked]
++Name=Allow plasma applets to be configued while locked
++Description=Kiosk is probing if the user is allowed to rearrange toolbars
++Policy=yes
++Persistence=session
++
++
++[org.kde.kiosk.action.lineedittextcompletion]
++Name=Allow auto-complete in a KLineEdit widget
++Description=Kiosk is probing if the user is allowed to use auto-completion in a KLineEdit widget
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.warnunwritableconfig]
++Name=Show a warning if the configuration files of an application are not writable
++Description=Kiosk is probing if a warnig should be shown when an application's configuration files are not writable
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.logout]
++Name=Allow the user to log out using global shortcuts
++Description=Kiosk is probing if the user is allowed to log out
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.action.actionhelp]
++Name=Show help menu
++Description=Trying to show the help menu
++Policy=yes
++Persistence=session
+\ No newline at end of file
+Index: org.kde.kiosk.resource.actions
+===================================================================
+--- org.kde.kiosk.resource.actions	(revision 0)
++++ org.kde.kiosk.resource.actions	(revision 0)
+@@ -0,0 +1,136 @@
++[Domain]
++Name=Kiosk common resource restrictions
++Icon=kioks-actions
++URL=http://techbase.kde.org/
++
++[org.kde.kiosk.resource.apps]
++Name=Applications menu (.desktop files).
++Description=Do not restrict applications menu resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.autostart]
++Name=Autostart directories (both XDG and kde-specific)
++Description=Do not restrict autostart directories
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.cache]
++Name=Cached information (e.g. favicons, web-pages)
++Description=Do not restrict cached information resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.cgi]
++Name=CGIs to run from kdehelp.
++Description=Do not restrict kdehelp CGI resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.config]
++Name=Configuration files.
++Description=Do not restrict configuration resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.data]
++Name=Where applications store data.
++Description=Do not restrict application data resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.emoticons]
++Name=Emoticons themes
++Description=Do not restrict emoticon theme resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.exe]
++Name=Executables in $prefix/bin. findExe() for a function that takes $PATH into account.
++Description=Do not restrict executable file resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.html]
++Name=HTML documentation.
++Description=Do not restrict html documentation resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.icon]
++Name=Icons, see KIconLoader.
++Description=Do not restrict icon resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.kcfg]
++Name=KConfigXT config files.
++Description=Do not restrict resources for KConfigXT
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.lib]
++Name=Libraries
++Description=Do not restrict library resources
++Policy=yes
++Persistence=session
++ 
++[org.kde.kiosk.resource.locale]
++Name=Translation files for KLocale.
++Description=Do not restrict translation resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.mime]
++Name=Mime types defined by KDE-specific .desktop files.
++Description=Do not restrict KDE-speific mime type resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.module]
++Name=Module (dynamically loaded library).
++Description=Do not restrict dynamic loaded module resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.qtplugins]
++Name=Qt plugins (dynamically loaded objects for Qt)
++Description=Do not restrict Qt plugin resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.services]
++Name=Services
++Description=Do not restrict KDE service resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.servicetypes]
++Name=Service types.
++Description=Do not restrict KDE service type resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.sound]
++Name=Application sounds
++Description=Do not restrict KDE application sound resources
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.templates]
++Name=Templates for the "Create new file" functionality.
++Description=Do not restrict templates for the "Create new file" functionality.
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.wallpaper]
++Name=Wallpapers
++Description=Do not restrict wallpaper resources.
++Policy=yes
++Persistence=session
++
++[org.kde.kiosk.resource.tmp]
++Name=Temporary files (specific for both current host and current user)
++Description=Do not restrict temporary file resources
++Policy=yes
++Persistence=session
+\ No newline at end of file
+Index: pklahelper_actions.actions
+===================================================================
+--- pklahelper_actions.actions	(revision 0)
++++ pklahelper_actions.actions	(revision 0)
+@@ -0,0 +1,14 @@
++[Domain]
++Name=Kiosk profile to PolicyKit1 converter
++Name[cs]=Překladač Kiosk profilů do PolicyKit1
++Name[en_GB]=Kiosk profile to PolicyKit1 converter
++Icon=preferences-system-time
++
++[org.kde.kiosk.pklahelper.convertall]
++Name=Convert all Kiosk profiles into PolicyKit1 Local Authority config files
++Name[cs]=Konvertovat všechny Kiosk profily na soubory s nastavením pro PolicyKit1 Local Authority
++Name[en_GB]=Convert all Kiosk profiles into PolicyKit1 Local Authority config files
++Description=System policies prevent you from converting Kiosk profiles into PolicyKit1 settings.
++Description[cs]=Nastavení systému vám znemožňuje konvertovat Kiosk profily na nastavení pro PolicyKit1.
++Description[en_GB]=System policies prevent you from converting Kiosk profiles into PolicyKit1 settings.
++Policy=auth_admin
+Index: kioskpklahelper.cpp
+===================================================================
+--- kioskpklahelper.cpp	(revision 0)
++++ kioskpklahelper.cpp	(revision 0)
+@@ -0,0 +1,538 @@
++/*
++ *  kioskpklahelper.cpp
++ *
++ *  Copyright (C) 2004 Waldo Bastian <bastian@kde.org>
++ *  Copyright (C) 2009 Ian Reinhart Geiser <geiseri@kde.org>
++ *  Copyright (C) 2010 Petr Mrázek <xmraze03@stud.fit.vutbr.cz>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
++ *
++ */
++
++
++/*
++ * This file contains some code borrowed from KioskTool
++ */
++
++#include "kioskpklahelper.h"
++
++#include <kcomponentdata.h>
++#include <kaboutdata.h>
++#include <kconfig.h>
++#include <kconfiggroup.h>
++#include <kstandarddirs.h>
++#include <kprocess.h>
++
++#include <QtCore/QDir>
++#include <QtCore/QDirIterator>
++#include <QtCore/QFile>
++#include <QtCore/QDebug>
++#include <polkitqt1-authority.h>
++
++// Maps a single group or user to a one or more profiles
++typedef QMap<QString,QStringList> ProfileMapping;
++
++// from KioskTool
++// get default profile prefix
++QString getProfilePrefix()
++{
++    //KConfig fullPath("/etc/kde4rc");
++    KConfigGroup grp( KGlobal::config(), "Directories");
++    
++    QString prefix = grp.readEntry("profileDirsPrefix");
++    if (!prefix.isEmpty() && !prefix.endsWith("/"))
++        prefix.append('/');
++    return prefix;
++}
++
++// from KioskTool
++// get all profiles as QStringList
++QStringList getAllProfiles()
++{
++    KSharedConfigPtr config = KGlobal::config();
++    //KConfig config("/etc/kde4rc");
++    QStringList groups = config->groupList();
++    QStringList profiles;
++    QStringList directories;
++    foreach( QString group, groups )
++    {
++        if (!group.startsWith("Directories-"))
++            continue;
++        profiles.append(group.mid(12));
++        KConfigGroup grp =  config->group(group);
++        QString installDir = grp.readEntry("prefixes");
++        if (!installDir.endsWith("/"))
++            installDir.append("/");
++        directories.append(installDir);
++    }
++
++    QString profilePrefix = getProfilePrefix();
++    if (!profilePrefix.isEmpty())
++    {
++        QDir dir(profilePrefix, QString(), QDir::Unsorted, QDir::Dirs);
++        QStringList profileDirs = dir.entryList();
++        foreach( QString profileDir, profileDirs )
++        {
++            if (profileDir.startsWith("."))
++                continue;
++            QString dir = profilePrefix + profileDir + "/";
++            if (directories.contains(dir))
++            {
++                qDebug() << "Skipping " << dir << ", dir already listed" << endl;
++                continue;
++            }
++            if (profiles.contains(profileDir))
++            {
++                qDebug() << "Skipping " << dir << ", profile [" << profileDir << "] already listed" << endl;
++                continue;
++            }
++
++            if (!QFile::exists(dir+".kdeprofile"))
++            {
++                qDebug() << "Skipping " << dir << ", no profile info" << endl;
++                continue;
++            }
++            profiles.append(profileDir);
++            directories.append(dir);
++        }
++    }
++
++    if (!profiles.contains("default"))
++        profiles.append("default");
++
++    return profiles;
++}
++
++// taken from kiosktool
++// get mappings between users and profiles, groups and profiles and the stacking order of groups
++void getUserProfileMappings( ProfileMapping &groups, ProfileMapping &users, QStringList &groupOrder)
++{
++    groups.clear();
++    users.clear();
++
++    KConfigGroup config( KGlobal::config(), "Directories");
++    QString mapFile = config.readEntry("userProfileMapFile");
++
++    if (mapFile.isEmpty() || !QFile::exists(mapFile))
++        return;
++
++    KConfig mapCfg(mapFile, KConfig::SimpleConfig);
++
++    KConfigGroup grp = mapCfg.group("General");
++    groupOrder = grp.readEntry("groups", QStringList());
++
++    grp = mapCfg.group("Groups");
++    foreach( QString group, groupOrder )
++    {
++        QStringList profiles = grp.readEntry(group, QStringList());
++        if (!profiles.isEmpty())
++            groups.insert(group, profiles);
++    }
++
++    QMap<QString, QString> cfg_users = mapCfg.entryMap("Users");
++    foreach( QString key, cfg_users.keys() )
++    {
++        QString user = key;
++        QStringList profiles = cfg_users[key].split(',');
++        if (!profiles.isEmpty())
++            users.insert(user, profiles);
++    }
++}
++
++// from KioskTool
++// Read information of profile @p profile
++void getProfileInfo(const QString &profile, QString &description, QString &installDir, QString &installUser)
++{
++    QString defaultInstallDir = getProfilePrefix();
++    if (defaultInstallDir.isEmpty())
++    {
++        defaultInstallDir = "/etc/kde-profile/";
++    }
++    if (!defaultInstallDir.endsWith("/"))
++        defaultInstallDir.append("/");
++    QString tmp = profile;
++    tmp.replace(" ", "_");
++    tmp.replace(":", "_");
++    tmp.replace("/", "_");
++    defaultInstallDir += tmp+"/";
++
++    QString group = QString("Directories-%1").arg(profile);
++    KConfigGroup grp(KGlobal::config(), group );
++
++    installDir = grp.readEntry("prefixes", defaultInstallDir);
++    if (!installDir.endsWith("/"))
++        installDir.append("/");
++
++    QString profileInfoFile = installDir + ".kdeprofile";
++    if (QFile::exists(profileInfoFile))
++    {
++        KConfig profileInfo(profileInfoFile, KConfig::SimpleConfig );
++        KConfigGroup profileInfoGroup = profileInfo.group("General");
++        description = profileInfoGroup.readEntry("Description");
++        installUser = profileInfoGroup.readEntry("InstallUser", "root");
++        return;
++    }
++
++    QString defaultDescription;
++    if (profile == "default")
++        defaultDescription = i18n("Default profile");
++
++    description = grp.readEntry("ProfileDescription", defaultDescription);
++    installUser = grp.readEntry("ProfileInstallUser", "root");
++}
++
++// strip illegal characters from names used in KAuth/its backends
++QString stripIllegal (const QString & input)
++{
++    // make action name lowercase
++    QString lowerAction = input.toLower();
++
++    // strip unsupported characters
++    QString stripped;
++    stripped.reserve(lowerAction.length());
++    for(int i = 0; i < lowerAction.length(); i++)
++    {
++        QChar c = lowerAction[i];
++        if((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))
++        {
++            stripped.append(c);
++        }
++    }
++    return stripped;
++}
++
++// delete all generated Kiosk PKLA settings
++void killAllPKLA()
++{
++    static QString path("/var/lib/polkit-1/localauthority/99-kiosk.d");
++    QDir dir(path);
++    if(dir.exists())
++    {
++        QDirIterator fileiter(path,QDir::Filters(QDir::Files));
++        while (fileiter.hasNext())
++        {
++            QFile::remove(fileiter.next());
++        }
++        dir.rmdir(path);
++    }
++}
++
++// Write contents to the PKLA hierarchy
++void writeToPKLA(const QString & contents, int index, const QString & name)
++{
++    static QString dirpath("/var/lib/polkit-1/localauthority/99-kiosk.d");
++    QString saneName = stripIllegal(name);
++    // create directory for Kiosk pkla files
++    {
++        QDir d(dirpath);
++        if(!d.exists())
++            d.mkpath(dirpath);
++    }
++    
++    QFile toWrite(QString("/var/lib/polkit-1/localauthority/99-kiosk.d/%1-%2.pkla").arg(index).arg(saneName));
++    toWrite.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
++    toWrite.write(contents.toUtf8());
++    toWrite.flush();
++    toWrite.close();
++}
++
++QString formatGroupPKLAEntry(const QString& unixgroup, const QString & action, bool value, int &index)
++{
++    QString retstring;
++    retstring.append(QString("[generated-%1]\n").arg(index));
++    retstring.append(QString("Identity=unix-group:%1\n").arg(unixgroup));
++    retstring.append(QString("Action=%1\n").arg(action));
++    if(value == true)
++    {
++        retstring.append(QString("ResultAny=yes\n"));
++        retstring.append(QString("ResultInactive=yes\n"));
++        retstring.append(QString("ResultActive=yes\n"));
++    }
++    else
++    {
++        retstring.append(QString("ResultAny=no\n"));
++        retstring.append(QString("ResultInactive=no\n"));
++        retstring.append(QString("ResultActive=no\n"));
++    }
++    return retstring;
++}
++
++// process a single KConfig group into entries for the group-assigned Kiosk profile
++QString unixgroupProcessEntryGroup(const QString & unixgroup,
++                                   const KConfigGroup & gr,
++                                   const QStringList & validEntries,
++                                   const QString & nspace,
++                                   int &index)
++{
++    QString aggregate;
++    // get map of entries
++    QStringList groupKeys = gr.keyList();
++    //qDebug() << unixgroup << nspace << " :: " << groupKeys.join(":");
++    // load all entries in order
++    foreach (QString str, groupKeys)
++    {
++        bool allowed = gr.readEntry<bool>(str,true);
++        //bool en_immutable = gr.isEntryImmutable(str);
++        QString strippedName = stripIllegal(str);
++        // create full action name
++        QString actionname = nspace + QChar('.');
++        actionname += strippedName;
++        //qDebug() << "Probing for action" << actionname;
++        // is it among known names?
++        if(validEntries.contains(actionname))
++        {
++            // yes? create a new entry;
++            aggregate += formatGroupPKLAEntry(unixgroup,actionname,allowed,index);
++            aggregate += '\n';
++            index++;
++        }
++        /*
++        else
++        {
++            qDebug() << "NOT FOUND";
++        }
++        */
++    }
++    qDebug() << aggregate;
++    return aggregate;
++}
++
++// creates a PKLA file for all groups
++QString createGroupFile (const QMap<QString, KConfig *> &AllProfiles,
++                         const QStringList &validActions,
++                         const QStringList &validResources,
++                         const ProfileMapping &groups,
++                         const QStringList &groupOrder)
++{
++    QString aggregate;
++    static QString actionNS("org.kde.kiosk.action");
++    static QString resourceNS("org.kde.kiosk.resource");
++    int index = 0;
++    // for each group in proper order
++    foreach(QString unixgroup, groupOrder)
++    {
++        // get Kiosk profiles
++        const QStringList & gProfiles = groups[unixgroup];
++        //qDebug() << "Group" << unixgroup << "profiles" << gProfiles.join(":");
++        
++        // for each profile, process KConfig objects
++        foreach(QString profile, gProfiles)
++        {
++            KConfig * conf = AllProfiles[profile];
++            // do all actions
++            KConfigGroup cfgGroupA = conf->group("KDE Action Restrictions");
++            if(cfgGroupA.exists())
++            {
++                aggregate += unixgroupProcessEntryGroup(unixgroup, cfgGroupA, validActions, actionNS, index);
++            }
++            /*
++            else
++                qDebug() << "No Action group in KConfig file";
++            */
++            // do all resources
++            KConfigGroup cfgGroupR = conf->group("KDE Resource Restrictions");
++            if(cfgGroupR.exists())
++            {
++                aggregate += unixgroupProcessEntryGroup(unixgroup, cfgGroupR, validResources, resourceNS, index);
++            }
++            /*
++            else
++                qDebug() << "No Resource group in KConfig file";
++            */
++        }
++    }
++    //qDebug() << aggregate;
++    return aggregate;
++}
++
++QString formatUserPKLAEntry(const QString& unixuser, const QString & action, bool value, int &index)
++{
++    QString retstring;
++    retstring.append(QString("[generated-%1]\n").arg(index));
++    retstring.append(QString("Identity=unix-user:%1\n").arg(unixuser));
++    retstring.append(QString("Action=%1\n").arg(action));
++    if(value == true)
++    {
++        retstring.append(QString("ResultAny=yes\n"));
++        retstring.append(QString("ResultInactive=yes\n"));
++        retstring.append(QString("ResultActive=yes\n"));
++    }
++    else
++    {
++        retstring.append(QString("ResultAny=no\n"));
++        retstring.append(QString("ResultInactive=no\n"));
++        retstring.append(QString("ResultActive=no\n"));
++    }
++    return retstring;
++}
++
++QString userProcessEntryGroup(const QString & unixuser,
++                              const KConfigGroup & gr,
++                              const QStringList & validEntries,
++                              const QString & nspace,
++                              int &index)
++{
++    QString aggregate;
++   
++    // first override all valid actions of our namespace
++    // with user profiles loade after group profiles,
++    // this means, that a user with a user profile won't have any group
++    // profiles applied to him. This mimics the way KConfig works to some
++    // extent
++    foreach (QString entryname, validEntries)
++    {
++        aggregate += formatUserPKLAEntry(unixuser,entryname,true,index);
++        aggregate += '\n';
++        index++;
++    }
++    
++    // get map of entries
++    QStringList groupKeys = gr.keyList();
++    
++    // load all entries in order
++    foreach (QString str, groupKeys)
++    {
++        bool allowed = gr.readEntry<bool>(str,true);
++        if(allowed) continue;
++        //bool en_immutable = gr.isEntryImmutable(str);
++        QString strippedName = stripIllegal(str);
++        // create full action name
++        QString actionname = nspace + QChar('.');
++        actionname += strippedName;
++        //qDebug() << "Probing for action" << actionname;
++        // is it among known names?
++        if(validEntries.contains(actionname))
++        {
++            // yes? create a new entry;
++            aggregate += formatUserPKLAEntry(unixuser,actionname,allowed,index);
++            aggregate += '\n';
++            index++;
++        }
++        /*
++        else
++        {
++            qDebug() << "NOT FOUND";
++        }
++        */
++    }
++    qDebug() << aggregate;
++    return aggregate;
++}
++
++
++QString createUserFile (const KConfig * config,
++                        const QStringList &validActions,
++                        const QStringList &validResources,
++                        const QString &userName)
++{
++    QString aggregate;
++    static QString actionNS("org.kde.kiosk.action");
++    static QString resourceNS("org.kde.kiosk.resource");
++    int index = 0;
++    // do all actions
++    KConfigGroup cfgGroupA = config->group("KDE Action Restrictions");
++    aggregate += userProcessEntryGroup(userName, cfgGroupA, validActions, actionNS, index);
++    
++    // do all resources
++    KConfigGroup cfgGroupR = config->group("KDE Resource Restrictions");
++    aggregate += userProcessEntryGroup(userName, cfgGroupR, validResources, resourceNS, index);
++    // return
++    return aggregate;
++}
++
++ActionReply KioskPKLAHelper::convertall(const QVariantMap &args)
++{
++    ActionReply reply;
++    
++    // create main component. yay for KConfig and friends
++    KComponentData data( "kioskpklahelper" );
++    // force things to init. possibly not needed
++    KStandardDirs * dirs = data.dirs();
++    KSharedConfigPtr conf = KGlobal::config();
++    
++    ProfileMapping groups, users;
++    QStringList groupOrder;
++    
++    getUserProfileMappings( groups, users, groupOrder);
++    
++    QString prefix = getProfilePrefix();
++    QStringList profilenames = getAllProfiles();
++    
++    // get all known polkit-1 actions
++    PolkitQt1::ActionDescription::List KnownPKActions =
++        PolkitQt1::Authority::instance()->enumerateActionsSync();
++    
++    // turn their IDs into a QStringList
++    QStringList allPolkitActions;
++    foreach(PolkitQt1::ActionDescription * adesc, KnownPKActions)
++    {
++        allPolkitActions += adesc->actionId();
++    }
++    
++    // get valid actions and resources from the PolicyKit1 Authority
++    QRegExp rgxpAction("^org\.kde\.kiosk\.action.*");
++    QRegExp rgxpResource("^org\.kde\.kiosk\.resource.*");
++    
++    QStringList validActions = allPolkitActions.filter(rgxpAction);
++    QStringList validResources = allPolkitActions.filter(rgxpResource);
++    
++    qDebug() << "Valid Actions!";
++    foreach(QString aaa, validActions)
++    {
++        qDebug() << aaa;
++    }
++    
++    // load profiles into our little cache here
++    QMap<QString, KConfig *> AllProfiles;
++    foreach (QString profileName, profilenames)
++    {
++        QString description;
++        QString installDir;
++        QString installUser;
++        getProfileInfo(profileName, description,installDir,installUser);
++        //get a KConfig object from the kdeglobals file (if any)
++        KConfig * globals = new KConfig(installDir + QLatin1String("share/config/kdeglobals"), KConfig::SimpleConfig);
++        AllProfiles[profileName] = globals;
++    }
++    
++    // remove previously installed PKLA files
++    killAllPKLA();
++    
++    // make one file for all groups
++    QString groupFile = 
++        createGroupFile(AllProfiles,validActions,validResources,groups,groupOrder);
++    int index = 0;
++    writeToPKLA(groupFile,index,QString("kde.kiosk.groups"));
++    index ++;
++    
++    // make a file for each user
++    ProfileMapping::iterator i;
++    for (i = users.begin(); i != users.end(); ++i)
++    {
++        QString unixuser = i.key();
++        QString profile = i.value().first();
++        KConfig * globals = AllProfiles[profile];
++        QString userFile = 
++            createUserFile(globals,validActions, validResources, unixuser);
++        writeToPKLA(userFile,index,QString("kde.kiosk.user.%1").arg(unixuser));
++    }
++    
++    QVariantMap retdata;
++    retdata["contents"] = QString("This is the PKLA converter helper!");
++    reply.setData(retdata);
++    return reply;
++}
++
++KDE4_AUTH_HELPER_MAIN("org.kde.kiosk.pklahelper", KioskPKLAHelper)
+Index: backends/mac/AuthServicesBackend.cpp
+===================================================================
+--- backends/mac/AuthServicesBackend.cpp	(revision 1125109)
++++ backends/mac/AuthServicesBackend.cpp	(working copy)
+@@ -54,6 +54,11 @@
+ 
+ Action::AuthStatus AuthServicesBackend::actionStatus(const QString &action)
+ {
++    // check if the action exists first, return error if not
++    OSStatus exists = AuthorizationRightGet(action.toUtf8(), NULL);
++    if(exists != errAuthorizationSuccess)
++        return Action::Invalid;
++    
+     AuthorizationItem item;
+     item.name = action.toUtf8();
+     item.valueLength = 0;
+Index: backends/polkit-1/Polkit1Backend.cpp
+===================================================================
+--- backends/polkit-1/Polkit1Backend.cpp	(revision 1125767)
++++ backends/polkit-1/Polkit1Backend.cpp	(working copy)
+@@ -22,6 +22,7 @@
+ #include "Polkit1Backend.h"
+ 
+ #include <QtCore/qplugin.h>
++#include <QtCore/QDebug>
+ #include <syslog.h>
+ #include <PolkitQt1/Authority>
+ #include <PolkitQt1/Subject>
+@@ -84,11 +85,27 @@
+     PolkitQt1::UnixProcessSubject subject(QCoreApplication::applicationPid());
+     PolkitQt1::Authority::Result r = PolkitQt1::Authority::instance()->checkAuthorizationSync(action, &subject,
+                                                                                               PolkitQt1::Authority::None);
+-    switch (r) {
++    
++    switch (r)
++    {
+     case PolkitQt1::Authority::Yes:
+         return Action::Authorized;
++    case PolkitQt1::Authority::Unknown:
++    {
++        PolkitQt1::Authority::ErrorCode error = PolkitQt1::Authority::instance()->lastError();
++        PolkitQt1::Authority::instance()->clearError();
++        // E_CheckFailed should indicate that an action doesn't exist in the database
++        if(error == PolkitQt1::Authority::E_CheckFailed)
++        {
++            return Action::Invalid;
++        }
++        else
++        {
++            // other errors. we treat them like before
++            return Action::Denied;
++        }
++    }
+     case PolkitQt1::Authority::No:
+-    case PolkitQt1::Authority::Unknown:
+         return Action::Denied;
+     default:
+         return Action::AuthRequired;
+Index: backends/fake/FakeBackend.cpp
+===================================================================
+--- backends/fake/FakeBackend.cpp	(revision 1125109)
++++ backends/fake/FakeBackend.cpp	(working copy)
+@@ -30,7 +30,7 @@
+ Action::AuthStatus FakeBackend::authorizeAction(const QString &action)
+ {
+     Q_UNUSED(action)
+-    return Action::Denied;
++    return Action::Invalid;
+ }
+ 
+ void FakeBackend::setupAction(const QString &action)
+@@ -41,7 +41,7 @@
+ Action::AuthStatus FakeBackend::actionStatus(const QString &action)
+ {
+     Q_UNUSED(action)
+-    return Action::Denied;
++    return Action::Invalid;
+ }
+ 
+ QByteArray FakeBackend::callerID() const
+Index: backends/policykit/PolicyKitBackend.cpp
+===================================================================
+--- backends/policykit/PolicyKitBackend.cpp	(revision 1125109)
++++ backends/policykit/PolicyKitBackend.cpp	(working copy)
+@@ -60,8 +60,9 @@
+     switch (r) {
+     case PolkitQt::Auth::Yes:
+         return Action::Authorized;
++    case PolkitQt::Auth::Unknown:
++        return Action::Invalid;
+     case PolkitQt::Auth::No:
+-    case PolkitQt::Auth::Unknown:
+         return Action::Denied;
+     default:
+         return Action::AuthRequired;
+Index: kioskpklaconvert.cpp
+===================================================================
+--- kioskpklaconvert.cpp	(revision 0)
++++ kioskpklaconvert.cpp	(revision 0)
+@@ -0,0 +1,76 @@
++#include <stdlib.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <pwd.h>
++#include <grp.h>
++
++#include <QtCore/QCoreApplication>
++#include <QtCore/QFile>
++
++#include <kaboutdata.h>
++#include <kcmdlineargs.h>
++#include <kglobal.h>
++#include <klocale.h>
++#include <kcomponentdata.h>
++#include <kshell.h>
++#include <kstandarddirs.h>
++#include <kconfiggroup.h>
++#include <kauth.h>
++#include <kdebug.h>
++
++using namespace KAuth;
++
++int main(int argc, char **argv)
++{
++    QCoreApplication app(argc, argv);
++    KLocale::setMainCatalog("kioskpklaconvert");
++    KAboutData about("kioskpklaconvert",0, ki18n( "kioskpklaconvert" ), "1.0", ki18n("A tool to convert Kiosk profiles into PolicyKit1 Local Authority configuration."), KAboutData::License_GPL, ki18n( "(C) 2010 Petr Mrázek" ));
++    KCmdLineArgs::init( argc, argv, &about);
++    KComponentData mainComponent(about);
++    
++    
++    // get cmdline args here
++    
++    //KCmdLineOptions options;
++    //options.add("check", ki18n("Output currently active prefixes"));
++    //KCmdLineArgs::addCmdLineOptions(options);
++    KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
++    
++    
++    
++    QVariantMap helperargs;
++    
++    // fill in helper args here
++    
++    Action action("org.kde.kiosk.pklahelper.convertall");
++    action.setHelperID("org.kde.kiosk.pklahelper");
++    action.setArguments(helperargs);
++
++    ActionReply reply = action.execute();
++
++    if (reply.failed())
++    {
++        if (reply.type() == ActionReply::KAuthError)
++        {
++            // There has been an internal KAuth error
++            kError() << "Unable to authenticate/execute the action:" << reply.errorCode() << " " << reply.errorDescription();
++        }
++        else
++        {
++            // There has been an internal KAuth error
++            kError() << "Reply:" << reply.errorCode() << " " << reply.errorDescription();
++        }
++    }
++    else
++    {
++        QVariantMap retdata = reply.data();
++        if(retdata.isEmpty())
++        {
++            kError() << "Reply is empty, helper didn't work :(";
++            kError() << "Reply:" << reply.type() << " " << reply.errorCode() << " " << reply.errorDescription();
++        }
++    }
++    return 0;
++}
++
++
+Index: kioskpklahelper.h
+===================================================================
+--- kioskpklahelper.h	(revision 0)
++++ kioskpklahelper.h	(revision 0)
+@@ -0,0 +1,36 @@
++/*
++ *  kioskpklahelper.h
++ *
++ *  Copyright (C) 2010 Petr Mrázek <xmraze03@stud.fit.vutbr.cz>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
++ *
++ */
++#ifndef KIOSK_PKLA_HELPER_H
++#define KIOSK_PKLA_HELPER_H
++
++#include <kauth.h>
++
++using namespace KAuth;
++
++class KioskPKLAHelper : public QObject
++{
++    Q_OBJECT
++
++    public slots:
++        ActionReply convertall(const QVariantMap &map);
++};
++
++#endif // KIOSK_PKLA_HELPER_H
