@@ -1,7 +1,7 @@
-Index: kernel/kauthorized.h
+Index: kdecore/kernel/kauthorized.h
 ===================================================================
---- kernel/kauthorized.h	(revision 1125109)
-+++ kernel/kauthorized.h	(working copy)
+--- kdecore/kernel/kauthorized.h	(revision 1125109)
++++ kdecore/kernel/kauthorized.h	(working copy)
 @@ -23,6 +23,7 @@
  
  #include <kdecore_export.h>
@@ -10,7 +10,7 @@ Index: kernel/kauthorized.h
  class KUrl;
  class QString;
  class QStringList;
-@@ -90,6 +91,14 @@
+@@ -90,6 +91,15 @@
     */
    KDE_EXPORT QStringList authorizeControlModules(const QStringList& menuIds);
  
@@ -19,17 +19,18 @@ Index: kernel/kauthorized.h
 +  *
 +  * @param config A KConfig object to probe for restrictions;
 +  * See KStandardDirs documentation for a list of possible resources
++  * @param toAuthorize A list of resource types to authorize
 +  * @return Those resources for which access has been restricted.
 +  */
-+  KDE_EXPORT QStringList authorizeResourceTypes(const KConfig* config);
++  KDE_EXPORT QStringList authorizeResourceTypes(const KConfig* config, QStringList & toAuthorize);
  }
  
  #endif
-Index: kernel/kstandarddirs.h
+Index: kdecore/kernel/kstandarddirs.h
 ===================================================================
---- kernel/kstandarddirs.h	(revision 1125109)
-+++ kernel/kstandarddirs.h	(working copy)
-@@ -532,6 +532,17 @@
+--- kdecore/kernel/kstandarddirs.h	(revision 1125109)
++++ kdecore/kernel/kstandarddirs.h	(working copy)
+@@ -532,6 +532,15 @@
                             SearchOptions options = NoSearchOptions );
  
      /**
@@ -38,19 +39,17 @@ Index: kernel/kstandarddirs.h
 +     *
 +     * @param config The object the entries are read from. This should
 +     *        contain global config files
-+     *
-+     * @return @c true if the list of restricted resource has changed
 +     */
-+    bool evaluateRestrictedResources(KConfig *config);
++    void evaluateRestrictedResources(KConfig *config);
 +    
 +    /**
       * Reads customized entries out of the given config object and add
       * them via addResourceDirs().
       *
-Index: kernel/kcomponentdata.cpp
+Index: kdecore/kernel/kcomponentdata.cpp
 ===================================================================
---- kernel/kcomponentdata.cpp	(revision 1125109)
-+++ kernel/kcomponentdata.cpp	(working copy)
+--- kdecore/kernel/kcomponentdata.cpp	(revision 1125109)
++++ kdecore/kernel/kcomponentdata.cpp	(working copy)
 @@ -140,7 +140,10 @@
          configInit(component);
  
@@ -62,10 +61,10 @@ Index: kernel/kcomponentdata.cpp
      }
      
      // the first KComponentData sets the KDE Qt plugin paths
-Index: kernel/kauthorized.cpp
+Index: kdecore/kernel/kauthorized.cpp
 ===================================================================
---- kernel/kauthorized.cpp	(revision 1125109)
-+++ kernel/kauthorized.cpp	(working copy)
+--- kdecore/kernel/kauthorized.cpp	(revision 1125109)
++++ kdecore/kernel/kauthorized.cpp	(working copy)
 @@ -22,7 +22,9 @@
  
  #include <QtCore/QDir>
@@ -77,16 +76,17 @@ Index: kernel/kauthorized.cpp
  
  
  #include <QCoreApplication>
-@@ -35,6 +37,8 @@
+@@ -35,6 +37,9 @@
  #include <netdb.h>
  #include <kurl.h>
  #include <kconfiggroup.h>
 +#include <kdebug.h>
 +#include <kauth.h>
++#include <BackendsManager.h>
  
  #include <QMutex>
  #include <QMutexLocker>
-@@ -201,7 +205,11 @@
+@@ -201,7 +206,11 @@
    ~KAuthorizedPrivate()
    {
    }
@@ -99,7 +99,7 @@ Index: kernel/kauthorized.cpp
    bool actionRestrictions : 1;
    bool blockEverything : 1;
    QList<URLActionRule> urlActionRestrictions;
-@@ -211,46 +219,170 @@
+@@ -211,46 +220,214 @@
  Q_GLOBAL_STATIC(KAuthorizedPrivate,authPrivate)
  #define MY_D KAuthorizedPrivate *d=authPrivate();
  
@@ -135,7 +135,7 @@ Index: kernel/kauthorized.cpp
 +{
 +    /*
 +     * Variant using KAuth::Action::execute(). Straight out of the KAuth tutorial.
-+     * can't detect when KAuth doesn't know the action. Leads to a lot of Bad Stuff(TM)
++     * can't detect when KAuth doesn't know the action. Doesn't seem work at all.
 +     */
 +    if(0)
 +    {
@@ -187,8 +187,9 @@ Index: kernel/kauthorized.cpp
 +    /*
 +     * Variant using KAuth::Action::status(). Works, session started with this
 +     * self-destructs after a short while.
++     * This uses the synchronous authorization check
 +     */
-+    if(1)
++    if(0)
 +    {
 +        QString aname = QString("org.kde.kiosk.%1.%2").arg(nspace,stripIllegal(action));
 +        KAuth::Action commonAction(aname);
@@ -213,10 +214,53 @@ Index: kernel/kauthorized.cpp
 +        }
 +        return false;
 +    }
++    
++    /*
++     * Variant using BackendManager together with other things
++     */
++    if(0)
++    {
++        QString aname = QString("org.kde.kiosk.%1.%2").arg(nspace,stripIllegal(action));
++        KAuth::AuthBackend * backend = KAuth::BackendsManager::authBackend();
++        bool authed = backend->isCallerAuthorized(aname,backend->callerID());
++        if(authed)
++        {
++            qDebug() << aname << "authorized by isCallerAuthorized";
++        }
++        else
++        {
++            qDebug() << aname << "NOT authorized by isCallerAuthorized";
++        }
++        return authed;
++        /*
++        KAuth::Action commonAction(aname);
++        KAuth::Action::AuthStatus auth = commonAction.authorize();
++        KConfigGroup cg(KGlobal::config(), KioskGroup);
++        switch(auth)
++        {
++            case KAuth::Action::Denied:
++                qDebug() << "Action " << aname << "denied by KAuth";
++                return false;
++            case KAuth::Action::Authorized:
++                qDebug() << "Action " << aname << "allowed by KAuth";
++                return true;
++            case KAuth::Action::Invalid:
++                // fallback to KConfig if we can't find the KAuth action
++                qDebug() << "Action " << aname << "handled by KConfig";
++                return cg.readEntry(action, true);
++            default:
++                // catch-all
++                qDebug() << "received unexpected result from commonAction.authorize(): " << auth;
++            return false;
++        }
++        return false;
++        */
++    }
++    
 +    /*
 +     * Original variant - old, as safe as it gets without disabling debugging. also fast.
 +     */
-+    if(0)
++    if(1)
 +    {
 +        MY_D
 +        KConfigGroup cg(KGlobal::config(), KioskGroup);
@@ -295,15 +339,16 @@ Index: kernel/kauthorized.cpp
     }
     return result;
  }
-@@ -378,3 +510,45 @@
+@@ -378,3 +555,52 @@
    }
    return result;
  }
 +extern bool kde_kiosk_admin;
 +
-+QStringList KAuthorized::authorizeResourceTypes(const KConfig* config)
++QStringList KAuthorized::authorizeResourceTypes(const KConfig* config, QStringList & toAuthorize)
 +{
 +    QStringList result;
++    MY_D
 +    
 +    // better be safe than sorry, return empty list for null pointer
 +    if(!config)
@@ -312,27 +357,33 @@ Index: kernel/kauthorized.cpp
 +    // Process KIOSK restrictions.
 +    if (!kde_kiosk_admin || qgetenv("KDE_KIOSK_NO_RESTRICTIONS").isEmpty())
 +    {
-+        // probe KAuth-stored restrictions first
 +        if(0)
 +        {
-+            //TODO: implement
-+            // get all actions in namespace org.kde.kiosk.common.resource,
-+            // probe for authorizations on those actions,
-+            // add failed authorizations to list of restricted resources
++            // probe KAuth-stored restrictions first
++            foreach(QString resource, toAuthorize)
++            {
++                KAuth::Action Resource(
++                    QString("org.kde.kiosk.resource.%1").arg(d->stripIllegal(resource))
++                        );
++                if(Resource.status() == KAuth::Action::Denied)
++                {
++                    //kDebug() << "Restricted resource" << key;
++                    result.append(resource);
++                }
++            }
 +        }
-+        
 +        // then probe KConfig-stored restrictions
 +        KConfigGroup cg(config, "KDE Resource Restrictions");
 +        const QMap<QString, QString> entries = cg.entryMap();
 +        for (QMap<QString, QString>::ConstIterator it2 = entries.begin();
 +        it2 != entries.end(); ++it2)
 +        {
-+            const QString key = it2.key();
++            const QString resource = it2.key();
 +            // resources are allowed by default (restricted = false here)
-+            if (!cg.readEntry(key, true))
++            if (toAuthorize.contains(resource) && !cg.readEntry(resource, true))
 +            {
 +                //kDebug() << "Restricted resource" << key;
-+                result.append(key);
++                result.append(resource);
 +            }
 +        }
 +        // remove duplicates
@@ -342,10 +393,10 @@ Index: kernel/kauthorized.cpp
 +    return result;
 +}
 \ No newline at end of file
-Index: kernel/kstandarddirs.cpp
+Index: kdecore/kernel/kstandarddirs.cpp
 ===================================================================
---- kernel/kstandarddirs.cpp	(revision 1125109)
-+++ kernel/kstandarddirs.cpp	(working copy)
+--- kdecore/kernel/kstandarddirs.cpp	(revision 1125109)
++++ kdecore/kernel/kstandarddirs.cpp	(working copy)
 @@ -35,6 +35,7 @@
  #include "kkernel_win.h"
  #include "kkernel_mac.h"
@@ -374,18 +425,19 @@ Index: kernel/kstandarddirs.cpp
      return false;
  }
  
-@@ -1896,6 +1901,27 @@
+@@ -1896,6 +1901,28 @@
  
  extern bool kde_kiosk_admin;
  
-+bool KStandardDirs::evaluateRestrictedResources(KConfig *config)
++void KStandardDirs::evaluateRestrictedResources(KConfig *config)
 +{
 +    // Process KIOSK restrictions.
 +    
 +    // get list of restricted resources
-+    QStringList entries = KAuthorized::authorizeResourceTypes(config);
++    QStringList toAuthorize = allTypes();
++    QStringList restricted = KAuthorized::authorizeResourceTypes(config, toAuthorize);
 +    // add them to the m_restrictions map
-+    for(QStringList::const_iterator it2 = entries.begin(); it2 < entries.end(); ++it2)
++    for(QStringList::const_iterator it2 = restricted.begin(); it2 < restricted.end(); ++it2)
 +    {
 +        const QString key = *it2;
 +        QByteArray lat1key = key.toLatin1();
@@ -402,7 +454,7 @@ Index: kernel/kstandarddirs.cpp
  bool KStandardDirs::addCustomized(KConfig *config)
  {
      if (!d->m_checkRestrictions) // there are already customized entries
-@@ -1993,8 +2019,10 @@
+@@ -1993,8 +2020,10 @@
              priority = true;
          }
      }
@@ -415,7 +467,7 @@ Index: kernel/kstandarddirs.cpp
      if (!kde_kiosk_admin || qgetenv("KDE_KIOSK_NO_RESTRICTIONS").isEmpty())
      {
          KConfigGroup cg(config, "KDE Resource Restrictions");
-@@ -2011,6 +2039,7 @@
+@@ -2011,6 +2040,7 @@
              }
          }
      }
@@ -423,10 +475,10 @@ Index: kernel/kstandarddirs.cpp
  
      // check if the number of config dirs changed
      bool configDirsChanged = (resourceDirs("config").count() != configdirs);
-Index: auth/org.kde.kiosk.action.actions
+Index: kdecore/auth/org.kde.kiosk.action.actions
 ===================================================================
---- auth/org.kde.kiosk.action.actions	(revision 0)
-+++ auth/org.kde.kiosk.action.actions	(revision 0)
+--- kdecore/auth/org.kde.kiosk.action.actions	(revision 0)
++++ kdecore/auth/org.kde.kiosk.action.actions	(revision 0)
 @@ -0,0 +1,89 @@
 +[Domain]
 +Name=Kiosk action restrictions
@@ -518,10 +570,10 @@ Index: auth/org.kde.kiosk.action.actions
 +Policy=yes
 +Persistence=session
 \ No newline at end of file
-Index: auth/org.kde.kiosk.resource.actions
+Index: kdecore/auth/org.kde.kiosk.resource.actions
 ===================================================================
---- auth/org.kde.kiosk.resource.actions	(revision 0)
-+++ auth/org.kde.kiosk.resource.actions	(revision 0)
+--- kdecore/auth/org.kde.kiosk.resource.actions	(revision 0)
++++ kdecore/auth/org.kde.kiosk.resource.actions	(revision 0)
 @@ -0,0 +1,136 @@
 +[Domain]
 +Name=Kiosk common resource restrictions
@@ -660,10 +712,63 @@ Index: auth/org.kde.kiosk.resource.actions
 +Policy=yes
 +Persistence=session
 \ No newline at end of file
-Index: auth/pklahelper_actions.actions
+Index: kdecore/auth/kauthDoS.cpp
 ===================================================================
---- auth/pklahelper_actions.actions	(revision 0)
-+++ auth/pklahelper_actions.actions	(revision 0)
+--- kdecore/auth/kauthDoS.cpp	(revision 0)
++++ kdecore/auth/kauthDoS.cpp	(revision 0)
+@@ -0,0 +1,48 @@
++#include <stdlib.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <pwd.h>
++#include <grp.h>
++
++#include <QtCore/QCoreApplication>
++#include <QtCore/QFile>
++
++#include <kaboutdata.h>
++#include <kcmdlineargs.h>
++#include <kglobal.h>
++#include <klocale.h>
++#include <kcomponentdata.h>
++#include <kshell.h>
++#include <kstandarddirs.h>
++#include <kconfiggroup.h>
++#include <kauth.h>
++#include <kdebug.h>
++#include <iostream>
++using namespace KAuth;
++
++int main(int argc, char **argv)
++{
++    QCoreApplication app(argc, argv);
++    KLocale::setMainCatalog("kauthDoS");
++    KAboutData about("kauthDoS",0, ki18n( "kauthDoS" ), "1.0", ki18n("A tool to test some aspects of KAuth."), KAboutData::License_GPL, ki18n( "(C) 2010 Petr Mrázek" ));
++    KCmdLineArgs::init( argc, argv, &about);
++    KComponentData mainComponent(about);
++    KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
++
++    QVariantMap helperargs;
++    // fill in helper args here
++    
++    // testing fake actions, not requiring user intervention
++    int index = 1;
++    forever
++    {
++        Action action(QString("org.kde.fake%1").arg(index));
++        action.status();
++        if(index % 1000 == 0)
++            std::cout << "org.kde.fake." << index << std::endl;
++        index++;
++    }
++    return 0;
++}
++
++
+Index: kdecore/auth/pklahelper_actions.actions
+===================================================================
+--- kdecore/auth/pklahelper_actions.actions	(revision 0)
++++ kdecore/auth/pklahelper_actions.actions	(revision 0)
 @@ -0,0 +1,14 @@
 +[Domain]
 +Name=Kiosk profile to PolicyKit1 converter
@@ -679,11 +784,11 @@ Index: auth/pklahelper_actions.actions
 +Description[cs]=Nastavení systému vám znemožňuje konvertovat Kiosk profily na nastavení pro PolicyKit1.
 +Description[en_GB]=System policies prevent you from converting Kiosk profiles into PolicyKit1 settings.
 +Policy=auth_admin
-Index: auth/kioskpklahelper.cpp
+Index: kdecore/auth/kioskpklahelper.cpp
 ===================================================================
---- auth/kioskpklahelper.cpp	(revision 0)
-+++ auth/kioskpklahelper.cpp	(revision 0)
-@@ -0,0 +1,538 @@
+--- kdecore/auth/kioskpklahelper.cpp	(revision 0)
++++ kdecore/auth/kioskpklahelper.cpp	(revision 0)
+@@ -0,0 +1,543 @@
 +/*
 + *  kioskpklahelper.cpp
 + *
@@ -919,17 +1024,22 @@ Index: auth/kioskpklahelper.cpp
 +void writeToPKLA(const QString & contents, int index, const QString & name)
 +{
 +    static QString dirpath("/var/lib/polkit-1/localauthority/99-kiosk.d");
-+    QString saneName = stripIllegal(name);
 +    // create directory for Kiosk pkla files
 +    {
 +        QDir d(dirpath);
 +        if(!d.exists())
++        {
 +            d.mkpath(dirpath);
++            QFile setperm(dirpath);
++            QFile::Permissions ownage = QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner;
++            setperm.setPermissions(ownage);
++        }
 +    }
-+    
-+    QFile toWrite(QString("/var/lib/polkit-1/localauthority/99-kiosk.d/%1-%2.pkla").arg(index).arg(saneName));
++    QFile::Permissions ownage = QFile::ReadOwner | QFile::WriteOwner;
++    QFile toWrite(QString("/var/lib/polkit-1/localauthority/99-kiosk.d/%1-%2.pkla").arg(index).arg(name));
 +    toWrite.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
 +    toWrite.write(contents.toUtf8());
++    toWrite.setPermissions(ownage);
 +    toWrite.flush();
 +    toWrite.close();
 +}
@@ -1051,15 +1161,11 @@ Index: auth/kioskpklahelper.cpp
 +    retstring.append(QString("Action=%1\n").arg(action));
 +    if(value == true)
 +    {
-+        retstring.append(QString("ResultAny=yes\n"));
-+        retstring.append(QString("ResultInactive=yes\n"));
-+        retstring.append(QString("ResultActive=yes\n"));
++        retstring.append(QString("ResultAny=yes\nResultInactive=yes\nResultActive=yes\n"));
 +    }
 +    else
 +    {
-+        retstring.append(QString("ResultAny=no\n"));
-+        retstring.append(QString("ResultInactive=no\n"));
-+        retstring.append(QString("ResultActive=no\n"));
++        retstring.append(QString("ResultAny=no\nResultInactive=no\nResultActive=no\n"));
 +    }
 +    return retstring;
 +}
@@ -1075,14 +1181,17 @@ Index: auth/kioskpklahelper.cpp
 +    // first override all valid actions of our namespace
 +    // with user profiles loade after group profiles,
 +    // this means, that a user with a user profile won't have any group
-+    // profiles applied to him. This mimics the way KConfig works to some
++    // profiles applied to him. This mimics the way KConfig works to *some*
 +    // extent
++    /*
 +    foreach (QString entryname, validEntries)
 +    {
 +        aggregate += formatUserPKLAEntry(unixuser,entryname,true,index);
 +        aggregate += '\n';
 +        index++;
 +    }
++    */
++    aggregate += formatUserPKLAEntry(unixuser,nspace + ".*",true,index);
 +    
 +    // get map of entries
 +    QStringList groupKeys = gr.keyList();
@@ -1173,13 +1282,13 @@ Index: auth/kioskpklahelper.cpp
 +    
 +    QStringList validActions = allPolkitActions.filter(rgxpAction);
 +    QStringList validResources = allPolkitActions.filter(rgxpResource);
-+    
++    /*
 +    qDebug() << "Valid Actions!";
 +    foreach(QString aaa, validActions)
 +    {
 +        qDebug() << aaa;
 +    }
-+    
++    */
 +    // load profiles into our little cache here
 +    QMap<QString, KConfig *> AllProfiles;
 +    foreach (QString profileName, profilenames)
@@ -1209,6 +1318,7 @@ Index: auth/kioskpklahelper.cpp
 +    {
 +        QString unixuser = i.key();
 +        QString profile = i.value().first();
++        qDebug() << "User" << unixuser << "profile" << profile;
 +        KConfig * globals = AllProfiles[profile];
 +        QString userFile = 
 +            createUserFile(globals,validActions, validResources, unixuser);
@@ -1222,10 +1332,10 @@ Index: auth/kioskpklahelper.cpp
 +}
 +
 +KDE4_AUTH_HELPER_MAIN("org.kde.kiosk.pklahelper", KioskPKLAHelper)
-Index: auth/backends/mac/AuthServicesBackend.cpp
+Index: kdecore/auth/backends/mac/AuthServicesBackend.cpp
 ===================================================================
---- auth/backends/mac/AuthServicesBackend.cpp	(revision 1125109)
-+++ auth/backends/mac/AuthServicesBackend.cpp	(working copy)
+--- kdecore/auth/backends/mac/AuthServicesBackend.cpp	(revision 1125109)
++++ kdecore/auth/backends/mac/AuthServicesBackend.cpp	(working copy)
 @@ -54,6 +54,11 @@
  
  Action::AuthStatus AuthServicesBackend::actionStatus(const QString &action)
@@ -1238,10 +1348,10 @@ Index: auth/backends/mac/AuthServicesBackend.cpp
      AuthorizationItem item;
      item.name = action.toUtf8();
      item.valueLength = 0;
-Index: auth/backends/polkit-1/Polkit1Backend.cpp
+Index: kdecore/auth/backends/polkit-1/Polkit1Backend.cpp
 ===================================================================
---- auth/backends/polkit-1/Polkit1Backend.cpp	(revision 1125767)
-+++ auth/backends/polkit-1/Polkit1Backend.cpp	(working copy)
+--- kdecore/auth/backends/polkit-1/Polkit1Backend.cpp	(revision 1125767)
++++ kdecore/auth/backends/polkit-1/Polkit1Backend.cpp	(working copy)
 @@ -22,6 +22,7 @@
  #include "Polkit1Backend.h"
  
@@ -1280,10 +1390,10 @@ Index: auth/backends/polkit-1/Polkit1Backend.cpp
          return Action::Denied;
      default:
          return Action::AuthRequired;
-Index: auth/backends/fake/FakeBackend.cpp
+Index: kdecore/auth/backends/fake/FakeBackend.cpp
 ===================================================================
---- auth/backends/fake/FakeBackend.cpp	(revision 1125109)
-+++ auth/backends/fake/FakeBackend.cpp	(working copy)
+--- kdecore/auth/backends/fake/FakeBackend.cpp	(revision 1125109)
++++ kdecore/auth/backends/fake/FakeBackend.cpp	(working copy)
 @@ -30,7 +30,7 @@
  Action::AuthStatus FakeBackend::authorizeAction(const QString &action)
  {
@@ -1302,10 +1412,10 @@ Index: auth/backends/fake/FakeBackend.cpp
  }
  
  QByteArray FakeBackend::callerID() const
-Index: auth/backends/policykit/PolicyKitBackend.cpp
+Index: kdecore/auth/backends/policykit/PolicyKitBackend.cpp
 ===================================================================
---- auth/backends/policykit/PolicyKitBackend.cpp	(revision 1125109)
-+++ auth/backends/policykit/PolicyKitBackend.cpp	(working copy)
+--- kdecore/auth/backends/policykit/PolicyKitBackend.cpp	(revision 1125109)
++++ kdecore/auth/backends/policykit/PolicyKitBackend.cpp	(working copy)
 @@ -60,8 +60,9 @@
      switch (r) {
      case PolkitQt::Auth::Yes:
@@ -1317,10 +1427,10 @@ Index: auth/backends/policykit/PolicyKitBackend.cpp
          return Action::Denied;
      default:
          return Action::AuthRequired;
-Index: auth/kioskpklaconvert.cpp
+Index: kdecore/auth/kioskpklaconvert.cpp
 ===================================================================
---- auth/kioskpklaconvert.cpp	(revision 0)
-+++ auth/kioskpklaconvert.cpp	(revision 0)
+--- kdecore/auth/kioskpklaconvert.cpp	(revision 0)
++++ kdecore/auth/kioskpklaconvert.cpp	(revision 0)
 @@ -0,0 +1,76 @@
 +#include <stdlib.h>
 +#include <unistd.h>
@@ -1398,10 +1508,10 @@ Index: auth/kioskpklaconvert.cpp
 +}
 +
 +
-Index: auth/kioskpklahelper.h
+Index: kdecore/auth/kioskpklahelper.h
 ===================================================================
---- auth/kioskpklahelper.h	(revision 0)
-+++ auth/kioskpklahelper.h	(revision 0)
+--- kdecore/auth/kioskpklahelper.h	(revision 0)
++++ kdecore/auth/kioskpklahelper.h	(revision 0)
 @@ -0,0 +1,36 @@
 +/*
 + *  kioskpklahelper.h
@@ -1439,11 +1549,11 @@ Index: auth/kioskpklahelper.h
 +};
 +
 +#endif // KIOSK_PKLA_HELPER_H
-Index: CMakeLists.txt
+Index: kdecore/CMakeLists.txt
 ===================================================================
---- CMakeLists.txt	(revision 1125109)
-+++ CMakeLists.txt	(working copy)
-@@ -398,6 +398,30 @@
+--- kdecore/CMakeLists.txt	(revision 1125109)
++++ kdecore/CMakeLists.txt	(working copy)
+@@ -398,6 +398,42 @@
  
  ########### next target ###############
  
@@ -1469,6 +1579,18 @@ Index: CMakeLists.txt
 +
 +    kde4_install_auth_actions(org.kde.kiosk.pklahelper auth/pklahelper_actions.actions)
 +ENDIF(KAUTH_BACKEND STREQUAL "POLKITQT-1")
++
++########### next target ###############
++
++# KAuth Action synchronous DoS test
++set ( kauthDoS_SRCS
++auth/kauthDoS.cpp
++)
++   
++kde4_add_executable(kauthDoS NOGUI ${kauthDoS_SRCS})
++target_link_libraries(kauthDoS ${KDE4_KDECORE_LIBS})
++install(TARGETS kauthDoS ${INSTALL_TARGETS_DEFAULT_ARGS})
++
 +########### next target ###############
 +
  configure_file(all_languages.desktop ${CMAKE_CURRENT_BINARY_DIR}/all_languages @ONLY)
