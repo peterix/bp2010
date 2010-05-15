@@ -6,17 +6,17 @@ změnou je~změna bezpečnostní politiky.
 
 MS Windows postupně získal mnohem lepší zabezpečení ve verzích NT, kdy došlo
 k~přechodu na nové jádro, a~Vista, kde se poprvé objevila možnost jednoduše
-povolit obyčejnému uživateli přístup k~nastavení systému pomocí UAC>citace<.
+povolit obyčejnému uživateli přístup k~nastavení systému pomocí UAC\footnote{User Access Control}.
 Zamezilo se tak nutnosti 'být administrátorem', což bylo do té doby výchozí
 nastavení po intalaci. Ve výsledku má uživatel povoleny akce, ke kterým by jinak
 přístup neměl.
 
 Unixové a~unixu podobné systémy se vyvíjely směrem opačným -- od práv pevně
-svázaných s~jeho účtem a~skupinou, k~mnohem volnějšímu pojetí. V~oblasti unixu
-a~unixu podobných systémů za zmínku stojí například program sudo
-[ref:http://www.sudo.ws/sudo/history.html], který umožňuje uživateli spouštět
-programy s~jinými právy než jsou jeho vlastní (převážně superuživatelská práva)
-případně program su, který je ještě staršího data.
+svázaných s~jeho účtem a~skupinou, k~mnohem volnějšímu pojetí. Za zmínku stojí
+například program sudo [ref:http://www.sudo.ws/sudo/history.html], který
+umožňuje uživateli spouštět programy s~jinými právy než jsou jeho vlastní
+(převážně superuživatelská práva) případně program su, který je ještě staršího
+data.
 
 Nově je k~dispozici také PolicyKit >citace<, který plní podobnou úlohu jako UAC
 na OS Windows. Aplikace využívající PolicyKit nemusejí mít pro změnu systémového
@@ -32,23 +32,16 @@ menu, zamezit použití terminálu a~podobně. K~tomu slouží Kiosk>citace<
 -- kombinace vlastností několika systémů obsažených v~KDE.
 
 Tyto technologie a~způsob jakým budou v~práci využity jsou blíže popsány ve
-druhé kapitole>ref<.
-
-Třetí kapitola popisuje integraci systému KAuth do rozhraní KAuthorized ()
-Cílem této práce je:
-\begin{itemize}
-\item Změnit API KAuthorized tak, aby používalo KAuth pro akce a~zdroje (Actions
- and Resources) - viz. kapitola 3
-\item Převést nástroj KioskTool do prostředí KDE4 -- kapitola 4
-\item Vytvořit nástroj pro migraci nastavení ze systému KConfig do nového KAuth
--- kapitola 5
-\item A~na závěr ověřit funkčnost řešení a~připravit jej na začlenění do KDE
-knihoven (KDELibs)
-\end{itemize}
+druhé kapitole. Třetí kapitola popisuje integraci systému KAuth do rozhraní
+KAuthorized a implementaci nástroje pro migraci. Čtvrtá kapitola se zabývá
+portem nástroje KioskTool do KDE4, úpravami v něm a návrhem nového grafického
+rozhraní. Pátá kapitola navrhuje další možný postup a technologie, které by bylo
+možné využít.
 
 \chapter{Základní technologie}
-V~této kapitole popíši blíže zmíněné rozhraní a~aplikace, tak aby bylo jasné jak fungují
-a~jaké podmínky musí být splněny, aby bylo výsledné řešení ekvivalentem původního.
+V~této kapitole popíši blíže zmíněné rozhraní a~aplikace, tak aby bylo jasné
+jak fungují a~jaké podmínky musí být splněny, aby bylo výsledné řešení
+ekvivalentem původního.
 
 Dříve než se pustíme do samotného popisu technologií je třeba vymezit některé pojmy:
 KAuth -- rozhraní nad autorizačním řešením jako je například PolicyKit.
@@ -144,6 +137,8 @@ změnil, je po návratu z~addCustomized konfigurace znovu načtena.
 Kconfig je, jak již bylo řečeno, systém pro načítání a~ukládání nastavení v~KDE.
 V~základu je navržen tak, aby bylo možné použít různé způsoby uložení nastavení,
 ale v~praxi jsou použity .ini soubory (jsou jednoduché a~rychle se načítají).
+
+
 
 Ukázka souboru '/etc/kde4rc':
 \begin{verbatim}
@@ -823,7 +818,7 @@ autorizace takto:
     language=C++,
     caption=Autorizace akce v PolicyKit1,
     basicstyle=\footnotesize,
-    float=h
+    float=h,
     framexleftmargin=5mm,
     %frame=shadowbox,
     %rulesepcolor=\color{blue}
@@ -1010,14 +1005,172 @@ uživatel kontrolu a nemůže tak menu schovat. To je poměrně závažný nedos
 
 % svn://svn.kde.org/home/kde/trunk/extragear/base/polkit-kde-1/
 \section{Integrace KAuth do KAuthorized}
+K dokončení integrace zbývá už pouze jediný krok -- volat z rozhraní KAuthorized
+metody systému KAuth. To se ukázalo být největším problémem ze všech. Vypadá to
+totiž, že KAuth zatím nikdy nebyl použit v takto velkém rozahu (autorizace všech
+akcí v KDE). Není tedy překvapením, že tato integrace odkryla některé problémy
+v KAuth a jím implementovaném PolicyKitu.
 
+KAuth nabízí několik možností, jak autorizovat akci. V zásadě se jedná o různé
+metody třídy KAuth::Action, mající mírně odlišný význam. Prvním metodou
+je execute() -- tato metoda je uvedena v příkladu $REF Příklad$ a je určena pro
+jednorázové blokující provedení akce. Pokud je to potřeba, uživatel je požádán
+o autentizaci. Metoda má podle $REF Příklad$ fungovat i bez přítomnosti
+pomocníka. Execute() má také asynchronní verzi.
 
+Další metodou je authorize(). Tato metoda je určena pro získání autorizace pro
+akce před tím, než by byla akce provedena. Má být používána ostatními metodami
+třídy KAuth::Action.  Metoda podobně jako execute() může od uživatele vyžadovat
+autentizaci. Třetí metodou je status() -- tato metoda je podobná execute(),
+ ale v případech, kdy by byla vyžadována autentizace pouze o této skutečnosti
+informuje.
+
+Takovýto význam by alespoň tyto metody měly mít. Skutečnost je ale odlišná.
+KAuth::Action používá pro autentizaci a použití pomocníků statické zásuvné
+moduly -- to znamená, že jsou určeny při sestavení. Tyto moduly implementují
+lokálně dostupné autentizační mechanismy. Zde vzniká problém kvality těchto
+mechanismů a jejich implementace v KAuthu. To je také hlavním kamenem úrazu.
+Mnou používaný PolicyKit1 například vůbec neimplementuje metodu authorize().
+Ta namísto výsledku vždy vrací hodnotu Action::Authorized. Její místo zastává
+metoda status(), která obaluje metodu checkAuthorizationSync() z knihoven
+polkit-qt-1. Toto je synchronní metoda pro autorizaci uživatele, která umožňuje
+upravit zda bude vyžadovat od uživatele autentizaci příznakem. Proč není
+implementována metoda authorize() je nejasné.
+
+Ze všech uvedených metod je nejvhodnější, alespoň podle komentářů v kódu, metoda
+status(). Po konverzi z Kiosk profilů totiž nevznikají akce pro jejichž
+autorizaci by bylo nutné se autentizovat. Při použití této metody v kombinaci
+s PolicyKitem však dochází k nežádoucím jevům. Program, který používá takto
+upravené rozhraní KAuthorized totiž po čase 'zamrzne'. To stejné se stane
+i s celým sezením KDE. Zkoušel jsem použít i jiné metody, ale výsledky byly
+ještě horší.
+
+Pro zjištění kde je chyba jsem vytvořil jednoduchý test kauthDoS. Ten
+v nekonečném cyklu volá KAuth::Action::status() a v pravidelných intervalech
+vypisuje hlášení. Když program přestane vypisovat, znamené to, že došlo k chybě.
+Démon polkitd a program kauthDoS byly spuštěny v debuggeru gdb a byly získány
+"backtrace" z obou programů (výpisy 3.5 a 3.6). Podle těch
+to vypadá, že problém vzniká během komunikace jednotlivých částí PolicyKitu.
+Chybu jsem ohlásil jeho autorovi.
+
+\lstset
+{
+    caption=Backtrace z démona polkitd při 'zamrznutí' (zkrácený),
+    float=tbp,
+    label=btrac1
+}
+\begin{lstlisting}
+#0  poll () from /lib/libc.so.6
+#1  in socket_do_iteration () from /usr/lib/libdbus-1.so.3
+#2  in _dbus_transport_do_iteration () from /usr/lib/libdbus-1.so.3
+#3  in _dbus_connection_do_iteration_unlocked () from /usr/lib/libdbus-1.so.3
+#4  in _dbus_connection_block_pending_call () from /usr/lib/libdbus-1.so.3
+#5  in egg_dbus_connection_pending_call_block (
+       connection=0x61a990, pending_call_id=196205)
+       at eggdbusconnection.c:2521
+...      
+#16 in g_main_context_dispatch ()
+       from /usr/lib/libglib-2.0.so.0
+#17 in g_main_context_iterate ()
+       from /usr/lib/libglib-2.0.so.0
+#18 in g_main_loop_run ()
+       from /usr/lib/libglib-2.0.so.0
+#19 in main ()
+\end{lstlisting}
+
+\lstset
+{
+    caption=Backtrace z testovacího polkitd při 'zamrznutí' (zkrácený),
+    float=tbp
+    label=btrac2
+}
+\begin{lstlisting}
+#0  in poll () from /lib/libc.so.6
+#1  in socket_do_iteration ()
+    from /usr/lib/libdbus-1.so.3
+#2  in _dbus_transport_do_iteration ()
+    from /usr/lib/libdbus-1.so.3
+#5  in egg_dbus_connection_pending_call_block (
+    connection=0x6add50, pending_call_id=74401)
+    at eggdbusconnection.c:2521
+#6  in polkit_authority_check_authorization_sync ()
+    from /usr/lib/libpolkit-gobject-1.so.0
+#7  in PolkitQt1::Authority::checkAuthorizationSync ()
+    from /home/kde-devel/kde/lib/libpolkit-qt-core-1.so.0
+#8  in KAuth::Polkit1Backend::actionStatus ()
+    at kdelibs/kdecore/auth/backends/polkit-1/Polkit1Backend.cpp:87
+#9  0x000000000040162e in main (argc=1, argv=<value optimized out>)
+    at kdelibs/kdecore/auth/kauthDoS.cpp:40 
+\end{lstlisting}
+
+Systém KAuth za využití PolicyKit1 tedy do jisté míry funguje, není ale nijak
+spolehlivý. Co funguje dobře jsou pomocníci. Ti mají zpravidla několik málo
+akcí, které se používají pouze pokud je to nutné -- příkladem budiž KCM modul
+pro nastavení času, nebo mnou implementovaný konvertor pro Kiosk profily.
+Při integraci do rozhraní KAuthorized, které je využíváno téměř každým programem
+v KDE je však objem dotazů o několik řádů vyšší. Sezení KDE přestane reagovat
+již během spuštění. Chyba v podstatě umožňuje přihlášenému uživateli provést
+DoS\footnote{Denial of Service} útok na PolicyKit, protože polkitd běží jako
+systémová služba, společná pro všechny uživatele. V dalším testování tedy
+bohužel nelze pokračovat, dokud nebude tato chyba odstraněna. 
+
+\section{Jak by to mělo vypadat}
+Nalezené nedostatky jsem již myslím popsal dostatečně. Je tedy na místě
+navrhnout, jak by se daly řešit. V prvé řadě je potřeba opravit zmíněnou chybu
+v PolicyKitu.
+
+Dále je potřeba rozšířit KAuth:
+\begin{enumerate}
+\item Je potřeba, aby uměl hlásit, pokud autorizovaná akce není známá -- a
+to pro všechny podporované autorizační systémy. Toto jsem udělal a otestoval
+pro metodu status() a PolicyKit1.
+\item KAuth musí umět nejen ověřovat a spouštět akce, ale také měnit oprávnění
+k těmto akcím pro uživatele a skupiny. Zde je zatím k dispozici pouze KCM modul
+pro PolicyKit v balíku policykit-kde-1, ale ten je zaměřen pouze na uživatele.
+Zcela chybí možnost nastavit oprávnění z kódu programu.
+\item Mělo by také být možné přidávat nové akce. To znamená, že by se nemusely
+do systému instalovat statické soubory s definicemi akcí.
+\end{enumerate}
+
+Body 2 a 3 by bylo možné realizovat jakožto pomocníky a přidat do systému KAuth
+rozhraní, které by umožnilo s nimi pracovat.
+
+Korektní integraci KAuthu přímo do KAuthorized považuji kvůli omezením ze strany
+KAuthu za nemožnou. Oba systémy jsou navíc velmi rozdílné v některých kritických
+bodech, i když to tak na první pohled nevypadá. I kdyby byla integrace úspěšná,
+nezískalo by se tím téměř nic. Na pouhé dotazování se na to, jestli je uživateli
+dovoleno provádět nějakou akci není potřeba KAuth. Stačí jakákoliv dostatečně
+bezpečná databáze. To však nebrání využití KAuthu tam, kde to má smysl. Tedy
+převážně tam, kde použití KAuth pomocníků poskytuje větší bezpečnost -- izolují
+se části programu vyžadující administrátorská práva od zbytku kódu. Z pohledu
+administrátora je možnost udělit konkrétním uživatelům a skupinám oprávnění tyto
+pomocníky spouštět snad největší výhodou řešení.
+
+Dalším možným rozšířením by bylo nějakým způsobem spojit KAuth se systémy jako
+je SELinux\footnote{Security Enhanced Linux}. Zde by byla výhoda v tom, že akce,
+které by jinak byly uživateli umožněny jde omezit na úrovni operačního systému.
+Využitelnost KAuthu by se tak rozšířila například na omezení spouštění programů
+a použití knihoven (příkladem budiž KCM moduly) a skutečné omezení zdrojů dat.
+Například pokud by měl uživatel zakázáno používat vlastní pozadí na plochu, bylo
+by zamezeno programu plasma-desktop načítat jiné obrázky, než ty instalované do
+systému administrátorem - a to bez možnosti to obejít. Omezení na zdroje tak jak
+je v KDE4 je v porovnání s takovým řešením v podstatě bezzubé.
 
 \chapter{Nástroj KioskTool}
-\section{Nutné opravy}
+Starší verzi nástroje pro KDE3 jsem již popsal, tato kapitola bude tedy věnována
+již existujícímu portu na KDE4 a jakým způsobem funguje. Navrhnu pro něj nové
+uživatelské rozhraní a opravím chyby, tak, aby bylo možné program začít
+používat.
 \section{Návrh možných změn uživatelského rozhraní}
-\section{Integrace KAuth}
-\chapter{Testování}
 \chapter{Závěr}
+
+Závěr 3 kapitola.
+Čeho se tedy podařilo v této části práce dosáhnut?
+Především byly popsány problémy spojené s integrací KAuthu a KAuthorized.
+Některé byly řešitelné, některé nikoliv. Díky celkové nevhodnosti této integrace
+není většinu napsaného kódu možné začlenit do KDElibs. Výjimkou může být
+například změna KStandardDirs a KComponentData umožňující specifikaci omezení
+na zdroje v Kioks profilech.
+
 \cite{fitWeb}
 %=========================================================================
