@@ -68,7 +68,7 @@ Dříve než se pustíme do samotného popisu technologií je třeba vymezit ně
 \end{description}
 
 \section{Kiosk}
-Zde je čerpáno převážně z úvodu do Kiosku \cite{Kioskintro} a zdrojového kódu kdelibs.
+Zde a v podkapitole  je čerpáno převážně z úvodu do Kiosku \cite{Kioskintro} a zdrojového kódu kdelibs.
 
 Z~pohedu administrátora Kiosk nabízí možnost upravit si KDE pro své vlastní účely. Například schovat některé položky v~grafickém rozhraní aplikací, znemožnit uživatelům měnit nastavení a~data aplikací nebo zamezit spuštění terminálu. Toho je docíleno nastevením některých částí konfigurace jako nezměnitelné (immutable) nebo vytvořením tzv. Kiosk profilů a~přiřazením těchto profilů k~uživatelům a~skupinám. Tyto profily jsou složky obsahující v~zásadě stejné soubory jako používá KConfig.
 
@@ -100,9 +100,9 @@ Každá KDE aplikace má několik základních částí, obsažených ve struktu
 
 \cppc{KStandardDirs} slouží k~určení, které složky budou použity jako zdroj dat a~konfigurace pro aplikaci.
 
-Právě \cppc{KStandardDirs} a~\cppc{KSharedConfig} jsou relevantní pro popis načítání konfigurace. Během inicializace komponenty se nejdříve načítá obecná konfigurace >ref void KComponentDataPrivate::lazyInit<. Ta obsahuje nastavení pro celé KDE a~zmíněnou aplikaci, ovšem bez začleněných Kiosk profilů. Tato kofigurace obsahuje také odkazy na Kiosk profily pro jednotlivé uživatele a~skupiny. Jak již bylo řečeno, Kiosk profily jsou složky se stejnými konfiguračními soubory jako používá KConfig.
+Právě \cppc{KStandardDirs} a~\cppc{KSharedConfig} jsou relevantní pro popis načítání konfigurace. Během inicializace komponenty se nejdříve načítá obecná konfigurace. Ta obsahuje nastavení pro celé KDE a~zmíněnou aplikaci, ovšem bez začleněných Kiosk profilů.
 
-Potom je volána metoda \cppc{KStandardDirs::addCustomized}, která vyhledá Kiosk profily platné pro uživatele (na *nix systémech je soubor s~jejich seznamem odkazován z~'/etc/kderc') a~zařadí je s~prioritou (narozdíl od cest ke zdrojům určených v~konstruktoru \cppc{KStandarDirs} jsou umístěny na začátek seznamu složek s~konfiguračními zdroji).
+Potom je volána metoda \cppc{KStandardDirs::addCustomized}, která vyhledá Kiosk profily platné pro uživatele (na *nix systémech je soubor s~jejich seznamem odkazován z~'/etc/kde4rc') a~zařadí je s~prioritou (narozdíl od cest ke zdrojům určených v~konstruktoru \cppc{KStandarDirs} jsou umístěny na začátek seznamu složek s~konfiguračními zdroji).
 
 Platí, že pokud má uživatel přiřazen svůj vlastní Kiosk profil, nezpracovávají se dále Kiosk profily pro skupiny v~nichž je členem. V~opačném případě, kdy uživatel nemá vlastní profil, přidají se s~prioritou do cest v~KStandardDirs všechny aplikovatelné skupinové profily. Pokud se počet cest s~konfigurací změnil, je po návratu z~addCustomized konfigurace znovu načtena.
 
@@ -143,23 +143,23 @@ ViewPropsTimestamp=2009,6,2,11,0,34
 \end{lstlisting}
 \end{mylisting}
 
-Na výpisu \ref{kconf_exmpl} vidět, jak je soubor členěn. Obsahuje skupiny a~záznamy typu klíč-hodnota. Soubory se během načítání konfigurace slučují do jednoho konfiguračního celku (třída KConfig).
+Na výpisu \ref{kconf_exmpl} vidět, jak je soubor členěn. Obsahuje skupiny a~záznamy typu klíč-hodnota. Soubory se během načítání konfigurace slučují do jednoho konfiguračního celku (třída KConfig), podle pořadí ve kterém jsou zpracovány. To je určeno v 
 
-Celé soubory, skupiny jako je 'Directories' a~jednotlivé záznamy jako je např. 'prefixes' je možné nastavit jako nezměnitelné -- 'immutable' pomocí přidání značky [\$i]. Jakmile je jednou nastavena na skupinu, soubor nebo hodnotu nezměnitelnost, jsou další objekty stejného typu při načítání ignorovány. V uvedeném příkladu je nastavena nezměnitelnost pro klíč CurrentPalette, skupinu General a celý soubor (nahoře). Máme-li tedy například pro uživatele 'test' nastaven Kiosk profil 'testprofil', který obsahuje konfigurační soubor pro aplikaci Akragator nastavený jako nezměnitelný, nebude moci uživatel nastavení tohoto programu změnit -- konfigurační soubor v jeho domovské složce je ignorován.
+Celé soubory, skupiny jako je 'Directories' a~jednotlivé záznamy jako je např. "AutoExpandFolders" je možné nastavit jako nezměnitelné -- 'immutable' pomocí přidání značky [\$i]. Jakmile je jednou nastavena na skupinu, soubor nebo hodnotu nezměnitelnost, jsou další objekty stejného typu při načítání ignorovány. V uvedeném příkladu je nastavena nezměnitelnost pro klíč CurrentPalette, skupinu General a celý soubor (nahoře). Máme-li tedy například pro uživatele 'test' nastaven Kiosk profil 'testprofil', který obsahuje konfigurační soubor pro aplikaci Akragator nastavený jako nezměnitelný, nebude moci uživatel nastavení tohoto programu změnit -- obsah konfiguračního souboru v jeho domovské složce je ignorován.
 
 \subsection{KAuthorized}
 Toto rozhraní (přesněji jmenný prostor) je tenkým obalem nad KConfigem, který využívá všech jeho vlastností. Poskytuje KDE knihovnám a~aplikacím možnost autorizace obecných akcí, KAkcí, konfiguračních modulů KControl, a~přistupů k~URL adresám. Chybí zde ovšem omezení přístupu ke zdrojům.
 
-KAkce (třída \cppc{KAction} odvozená od \cppc{QAction} z~knihovny Qt) a~obecné akce jsou v~rámci KDE činnosti, které může uživatel vykonat v aplikaci. Tyto akce mají název, který je v~Kiosku použit pro jejich autorizaci.
+KAkce (třída \cppc{KAction} odvozená od \cppc{QAction} z~knihovny Qt) a~obecné akce jsou v~rámci KDE činnosti, které může uživatel vykonat v aplikaci. Tyto akce mají název, který je v~Kiosku použit pro jejich autorizaci a jsou často asociovány s nějakým ovládacím prvkem -- položkou v menu apod.
 
 Restrikce akcí jsou nastavovány v~konfiguračních souborech ve skupině "KDE Action Restrictions". Zpravidla se jich používá ke schování prvků grafického rozhraní které jsou s~akcemi provázány. Akce může být například otevření menu s~nápovědou, změna pozadí na ploše nebo třeba vypnutí počítače z~menu KDE. Pokud je taková akce zakázána pomocí Kiosku, prvky uživatelského rozhraní se nezobrazí (nevytvoří během inicializace aplikace).
 
-Rozdíl mezi obecnou akcí a~KAkcí v~rámci \cppc{KAuthorized} je mizivý a~funkce \cppc{AuthorizeKAction} je obal nad \cppc{authorize()}, který před název akce přidá prefix 'action/'. Příslušná funkce pak použije globální \cppc{KConfig} objekt aplikace k~ověření, zda má uživatel tuto akci zakázánu (ve výchozím stavu jsou všechny povoleny).
+Rozdíl mezi obecnou akcí a~KAkcí v~rámci \cppc{KAuthorized} je mizivý a~funkce \cppc{AuthorizeKAction} je obal nad \cppc{authorize()}, který před název akce přidá prefix "action/". Příslušná funkce pak použije globální \cppc{KConfig} objekt aplikace k~ověření, zda má uživatel tuto akci zakázánu (ve výchozím stavu jsou všechny povoleny).
 
-Omezení přístupu ke zdrojům je nastavováno ve skupině "KDE Resource Restrictions" a~je umístěno do globálního konfiguračního souboru jako je "kdeglobals". Omezením zdrojů lze docílit toho, že aplikace "neuvidí" zdroje umístěné v uživatelově domovské složce. Lze tak zamezit například tomu, aby si uživatel aplikace rozšiřoval. I~když je tato část Kiosku velmi podobná ostatním autorizačním funkcím v~\cppc{KAuthorized}, není do něj přímo začleněna. Důvodem je, že je úzce provázána s~třídou \cppc{KStandardDirs}, která tyto omezení zpracovává a~používá pro vytvoření seznamů složek se zdroji. Seznam těchto omezení je potřeba znát ještě před tím, než je zcela načtena konfigurace z~prostého důvodu -- je možné omezit i zdroj pro konfiguraci. To by však nemělo bránit vytvoření nové funkce pro získání seznamu typu zdrojů s~omezením přístupu v~jmenném prostoru \cppc{KAuthorized} (mohla by například vracet \cppc{QStringList}).
+Omezení přístupu ke zdrojům je nastavováno ve skupině \cppc{KDE Resource Restrictions} a~je umístěno do globálního konfiguračního souboru jako je \cppc{kdeglobals}. Omezením zdrojů lze docílit toho, že aplikace "neuvidí" zdroje umístěné v uživatelově domovské složce. Lze tak zamezit například tomu, aby si uživatel aplikace rozšiřoval. I~když je tato část Kiosku velmi podobná ostatním autorizačním funkcím v~\cppc{KAuthorized}, není do něj přímo začleněna. Důvodem je, že je úzce provázána s~třídou \cppc{KStandardDirs}, která tyto omezení zpracovává a~používá pro vytvoření seznamů složek se zdroji. Seznam těchto omezení je potřeba znát ještě před tím, než je zcela načtena konfigurace z~prostého důvodu -- je možné omezit i zdroj pro konfiguraci. To by však nemělo bránit vytvoření nové funkce pro získání seznamu typu zdrojů s~omezením přístupu v~jmenném prostoru \cppc{KAuthorized} (mohla by například vracet \cppc{QStringList}).
 
 %ref: http://techbase.kde.org/KDE_System_Administration/Kiosk/Introduction#KDE_URL_Restrictions
-Omezení přístupu k~URL je nastavováno ve skupině 'KDE URL Restrictions'. Tyto omezení jsou určeny pro zamítnutí přístupu k~některým adresám URL. Vstupní parametry jsou seznam šestic hodnot a~ověřovaná URL. Jednotlivé části je možné vynechat nebo místo nich použít proměnné.
+Omezení přístupu k~URL je nastavováno ve skupině \cppc{KDE URL Restrictions}. Tyto omezení jsou určeny pro zamítnutí přístupu k~některým adresám URL. Vstupní parametry jsou seznam šestic hodnot a~ověřovaná URL. Jednotlivé části je možné vynechat nebo místo nich použít proměnné.
 \begin{mylisting}
 \caption{Syntaxe pro zápis omezení URL}
 \label{url_syntax}
@@ -171,7 +171,7 @@ rule_N=<action>,<referrer protocol>,<referrer host>,<referrer path>,
 
 \begin{mylisting}
 \caption{Ukázka zápisu omezení URL}
-\label{url_syntax}
+\label{url_exampl}
 \begin{lstlisting}
 [KDE URL Restrictions][\$i]
 rule_count=6
@@ -188,10 +188,10 @@ v~\$HOME a~\$TMP.
 
 Po seznámení se s~funkcí systému KAuth by z~tohoto příkladu mělo být zřejmé, že neumí takováto data rozumně uložit. Omezeními na URL se tedy nebudu dále zabývat.
 
-KDE používá třídu KCModule jako základ pro všechny moduly použité v~aplikacích 'Nastavení Systému', kcmshell a~případně v~jiných aplikacích, které používají KCM moduly pro úpravu svého nastavení. Za pomoci omezení přístupu ke KCM modulům je možné skrýt tyto moduly ve zmíněných aplikacích, aby je uživatel nemohl otevřít. To stejné funguje i pro služby KDE (KService). Omezení se vztahují k~názvům těchto modulů -- pokud budou moduly přejmenovány, přestanou omezení fungovat. V~systému KConfig jsou uvedeny ve skupině 'KDE Control Module Restrictions'.
+KDE používá třídu \cppc{KCModule} jako základ pro všechny moduly použité v~aplikacích "Nastavení Systému", \cppc{kcmshell} a~případně v~jiných aplikacích, které používají KCM moduly pro úpravu svého nastavení. Za pomoci omezení přístupu ke KCM modulům je možné skrýt tyto moduly ve zmíněných aplikacích, aby je uživatel nemohl otevřít. To stejné funguje i pro služby KDE (KService). Omezení se vztahují k~názvům těchto modulů -- pokud budou moduly přejmenovány, přestanou omezení fungovat. V~systému KConfig jsou uvedeny ve skupině 'KDE Control Module Restrictions'.
 
 \subsection{KioskTool}
-Aplikace KioskTool umožňovala v~KDE 3 spravovat některé specifické části Kiosk profilů pomocí grafického rozhraní. Nejprve popíši její funkčnost ve verzi pro KDE3 za pomocí obrázků, protože tak to bude nejlepší.
+Aplikace KioskTool umožňovala v~KDE3 spravovat některé specifické části Kiosk profilů pomocí grafického rozhraní. Nejprve popíši její funkčnost ve verzi pro KDE3 za pomocí obrázků, protože tak to bude nejlepší.
 
 \begin{figure}[h]
     \centering
@@ -249,11 +249,11 @@ I~při krátké době nutné na seznámení s~nástrojem (KioskTool 1.0 v~Kubunt
 \begin{figure}[h]
     \centering
     \includegraphics[width=12cm]{obrazky/polkit-architecture-vector-cz.pdf}
-    \caption{Architektura systému PolicyKit, přeloženo z \cite{manpolkit}}
+    \caption{Architektura systému PolicyKit, přeloženo z \cite{manpolkit1}}
     \label{fig:polkit_arch}
 \end{figure}
 
-V této sekci jsem čerpal z manuálu \cite{manpolkit_overview}, převážně pak z jeho částí \cite{manpolkit1} a \cite{manpklocalauth}. @manual{,
+V této sekci jsem čerpal z manuálu \cite{manpolkit_overview}, převážně pak z jeho částí \cite{manpolkit1} a \cite{manpklocalauth}.
 
 PolicyKit je systém umožňující autentizovat uživatele, autorizovat akce těchto uživatelů a~pomocí tzv. mechanismů tyto akce také provádět. Je to systém velmi modulární a~přenechává implementaci mnoha těchto funkcí zásuvným modulům a~programům které jej využívají. Pro každý typ rozšíření PolicyKitu existuje knihovna. Jednotlivé komponenty pak spolu komunikují pomocí IPC mechanismu D-Bus (ať už přímo nebo prostřednictvím knihoven).
 
@@ -324,8 +324,8 @@ Takto hrubě vymezená práva a~omezení je dále možné pozměnit v~souborech 
 
 \begin{figure}[h]
     \centering
-    \label{fig:pkit_la}
-    \caption{Struktura složek pro PolicyKit Local Authority s~několika .pkla soubory. Převzato z \cite{pkit_pkla}}
+    \label{fig:pkit_strukture}
+    \caption{Struktura složek pro PolicyKit Local Authority s~několika .pkla soubory. Převzato z \cite{manpklocalauth}}
     \begin{verbatim}
                /var/lib/polkit-1
                └── localauthority
@@ -350,7 +350,7 @@ Takto hrubě vymezená práva a~omezení je dále možné pozměnit v~souborech 
                    └── 90-mandatory.d\end{verbatim}
 \end{figure}
 
-Local Authority pro ně zavádí poměrně propracovanou strukturu \ref{fig:pkit_la}. Pořadí načítání je určeno lexikografickým řazením složek a~souborů v~nich. Pokud je stejně pojmenovaný soubor v~obou umístěních (ve /var/lib/ i /etc/), nejdříve se zpracuje ten ve /var/.
+Local Authority pro ně zavádí poměrně propracovanou strukturu \ref{fig:pkit_struktura}. Pořadí načítání je určeno lexikografickým řazením složek a~souborů v~nich. Pokud je stejně pojmenovaný soubor v~obou umístěních (ve /var/lib/ i /etc/), nejdříve se zpracuje ten ve /var/.
 
 Ve struktuře \ref{fig:pkit_la} by pořadí zpracování vypadalo takto:
 \begin{itemize}
@@ -361,7 +361,7 @@ Ve struktuře \ref{fig:pkit_la} by pořadí zpracování vypadalo takto:
 \end{itemize}
 
 \begin{mylisting}
-\caption{Ukázka souboru s~nastavením PK Local Authority (.pkla soubor), Přeloženo z \cite{pkit_pkla}}
+\caption{Ukázka souboru s~nastavením PK Local Authority (.pkla soubor), Přeloženo z \cite{manpklocalauth}}
 \label{fig:pkit_pkla}
 \begin{lstlisting}
 [Povolene akce pro zamestnance]
