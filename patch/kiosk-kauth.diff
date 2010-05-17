@@ -61,6 +61,17 @@ Index: kdecore/kernel/kcomponentdata.cpp
      }
      
      // the first KComponentData sets the KDE Qt plugin paths
+@@ -179,7 +182,9 @@
+     }
+ 
+     // Check if we are excempt from kiosk restrictions
+-    if (kde_kiosk_admin && !kde_kiosk_exception && !qgetenv("KDE_KIOSK_NO_RESTRICTIONS").isEmpty()) {
++    if (kde_kiosk_admin && !kde_kiosk_exception && !qgetenv("KDE_KIOSK_NO_RESTRICTIONS").isEmpty())
++    {
++        qDebug() << "Kiosk restrictions disabled!";
+         kde_kiosk_exception = true;
+         sharedConfig = 0;
+         configInit(component); // Reread...
 Index: kdecore/kernel/kauthorized.cpp
 ===================================================================
 --- kdecore/kernel/kauthorized.cpp	(revision 1125109)
@@ -86,7 +97,15 @@ Index: kdecore/kernel/kauthorized.cpp
  
  #include <QMutex>
  #include <QMutexLocker>
-@@ -201,7 +206,11 @@
+@@ -195,13 +200,18 @@
+       blockEverything=true;
+       return;
+     }
+-    actionRestrictions = config->hasGroup("KDE Action Restrictions" ) && !kde_kiosk_exception;
++    // this condition had to be disabled due to KAuthorizedPrivate being initialized earlier in the process
++    actionRestrictions = /*config->hasGroup("KDE Action Restrictions" ) && */!kde_kiosk_exception;
+   }
+ 
    ~KAuthorizedPrivate()
    {
    }
@@ -99,7 +118,7 @@ Index: kdecore/kernel/kauthorized.cpp
    bool actionRestrictions : 1;
    bool blockEverything : 1;
    QList<URLActionRule> urlActionRestrictions;
-@@ -211,46 +220,214 @@
+@@ -211,46 +221,227 @@
  Q_GLOBAL_STATIC(KAuthorizedPrivate,authPrivate)
  #define MY_D KAuthorizedPrivate *d=authPrivate();
  
@@ -264,7 +283,14 @@ Index: kdecore/kernel/kauthorized.cpp
 +    {
 +        MY_D
 +        KConfigGroup cg(KGlobal::config(), KioskGroup);
-+        return cg.readEntry(action, true);
++        bool allowed = cg.readEntry(action, true);
++        /*
++        if(allowed)
++            qDebug() << "action" << action << "allowed by KConfig";
++        else
++            qDebug() << "action" << action << "denied by KConfig";
++        */
++        return allowed;
 +    }
 +    return true;
  }
@@ -272,10 +298,16 @@ Index: kdecore/kernel/kauthorized.cpp
 +bool KAuthorized::authorize(const QString &genericAction)
 +{
 +    MY_D
-+    if (d->blockEverything) return false;
++    if (d->blockEverything)
++    {
++        qDebug() << "action" << genericAction << "denied by d->blockEverything";
++        return false;
++    }
 +    if (!d->actionRestrictions || genericAction.isEmpty())
++    {
++        qDebug() << "action" << genericAction << "allowed by !d->actionRestrictions || genericAction.isEmpty()";
 +        return true;
-+    
++    }
 +    return d->KioskAuthorize(QString("KDE Action Restrictions"),
 +                             QString("action"),
 +                             genericAction);
@@ -339,7 +371,7 @@ Index: kdecore/kernel/kauthorized.cpp
     }
     return result;
  }
-@@ -378,3 +555,52 @@
+@@ -378,3 +569,53 @@
    }
    return result;
  }
@@ -357,6 +389,7 @@ Index: kdecore/kernel/kauthorized.cpp
 +    // Process KIOSK restrictions.
 +    if (!kde_kiosk_admin || qgetenv("KDE_KIOSK_NO_RESTRICTIONS").isEmpty())
 +    {
++        // enable this to use KAuth for resource restrictions
 +        if(0)
 +        {
 +            // probe KAuth-stored restrictions first
@@ -425,7 +458,23 @@ Index: kdecore/kernel/kstandarddirs.cpp
      return false;
  }
  
-@@ -1896,6 +1901,28 @@
+@@ -1834,6 +1839,7 @@
+     if (mapFile.isEmpty() || !QFile::exists(mapFile))
+     {
+         profiles << "default";
++        qDebug()<< "Empty or no map file";
+         return profiles;
+     }
+ 
+@@ -1841,6 +1847,7 @@
+     if (!pw)
+     {
+         profiles << "default";
++        qDebug()<< "Root has no need for profiles";
+         return profiles; // Not good
+     }
+ 
+@@ -1896,6 +1903,28 @@
  
  extern bool kde_kiosk_admin;
  
@@ -454,7 +503,36 @@ Index: kdecore/kernel/kstandarddirs.cpp
  bool KStandardDirs::addCustomized(KConfig *config)
  {
      if (!d->m_checkRestrictions) // there are already customized entries
-@@ -1993,8 +2020,10 @@
+@@ -1934,16 +1963,25 @@
+         bool readProfiles = true;
+ 
+         if (kde_kiosk_admin && !qgetenv("KDE_KIOSK_NO_PROFILES").isEmpty())
++        {
++            qDebug() << "Kiosk profile reading disabled";
+             readProfiles = false;
++        }
+ 
+         QString userMapFile = cg.readEntry("userProfileMapFile");
+         QString profileDirsPrefix = cg.readEntry("profileDirsPrefix");
+         if (!profileDirsPrefix.isEmpty() && !profileDirsPrefix.endsWith('/'))
+             profileDirsPrefix.append("/");
+ 
+-        QStringList profiles;
+-        if (readProfiles)
+-            profiles = lookupProfiles(userMapFile);
++        QStringList profiles = lookupProfiles(userMapFile);
++        foreach(QString profile, profiles)
++        {
++            qDebug() << "profile" << profile << "looked up";
++        }
++        if (!readProfiles)
++        {
++            profiles.clear();
++        }
+         QString profile;
+ 
+         bool priority = false;
+@@ -1993,8 +2031,10 @@
              priority = true;
          }
      }
@@ -467,7 +545,7 @@ Index: kdecore/kernel/kstandarddirs.cpp
      if (!kde_kiosk_admin || qgetenv("KDE_KIOSK_NO_RESTRICTIONS").isEmpty())
      {
          KConfigGroup cg(config, "KDE Resource Restrictions");
-@@ -2011,6 +2040,7 @@
+@@ -2011,6 +2051,7 @@
              }
          }
      }
@@ -788,7 +866,7 @@ Index: kdecore/auth/kioskpklahelper.cpp
 ===================================================================
 --- kdecore/auth/kioskpklahelper.cpp	(revision 0)
 +++ kdecore/auth/kioskpklahelper.cpp	(revision 0)
-@@ -0,0 +1,543 @@
+@@ -0,0 +1,538 @@
 +/*
 + *  kioskpklahelper.cpp
 + *
@@ -1183,15 +1261,10 @@ Index: kdecore/auth/kioskpklahelper.cpp
 +    // this means, that a user with a user profile won't have any group
 +    // profiles applied to him. This mimics the way KConfig works to *some*
 +    // extent
-+    /*
-+    foreach (QString entryname, validEntries)
-+    {
-+        aggregate += formatUserPKLAEntry(unixuser,entryname,true,index);
-+        aggregate += '\n';
-+        index++;
-+    }
-+    */
++
 +    aggregate += formatUserPKLAEntry(unixuser,nspace + ".*",true,index);
++    aggregate += '\n';
++    index++;
 +    
 +    // get map of entries
 +    QStringList groupKeys = gr.keyList();
