@@ -553,6 +553,40 @@ Index: kdecore/kernel/kstandarddirs.cpp
  
      // check if the number of config dirs changed
      bool configDirsChanged = (resourceDirs("config").count() != configdirs);
+Index: kdecore/auth/org.kde.kauth.test.actions
+===================================================================
+--- kdecore/auth/org.kde.kauth.test.actions	(revision 0)
++++ kdecore/auth/org.kde.kauth.test.actions	(revision 0)
+@@ -0,0 +1,28 @@
++[Domain]
++Name=KAuth test
++Icon=kauth-test
++URL=http://techbase.kde.org/
++
++[org.kde.kauth.test.yes]
++Name=The KAuth test yes action
++Description=This should always succeed
++Policy=yes
++Persistence=session
++
++[org.kde.kauth.test.no]
++Name=The KAuth test no action
++Description=This should always fail
++Policy=no
++Persistence=session
++
++[org.kde.kauth.test.admin]
++Name=The KAuth test admin action
++Description=This should require superuser login
++Policy=auth_admin
++Persistence=session
++
++[org.kde.kauth.test.self]
++Name=The KAuth test self action
++Description=This should require personal login
++Policy=auth_self
++Persistence=session
+\ No newline at end of file
 Index: kdecore/auth/org.kde.kiosk.action.actions
 ===================================================================
 --- kdecore/auth/org.kde.kiosk.action.actions	(revision 0)
@@ -790,6 +824,126 @@ Index: kdecore/auth/org.kde.kiosk.resource.actions
 +Policy=yes
 +Persistence=session
 \ No newline at end of file
+Index: kdecore/auth/kauthtest.cpp
+===================================================================
+--- kdecore/auth/kauthtest.cpp	(revision 0)
++++ kdecore/auth/kauthtest.cpp	(revision 0)
+@@ -0,0 +1,115 @@
++#include <stdlib.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <pwd.h>
++#include <grp.h>
++
++#include <QtCore/QCoreApplication>
++#include <QtCore/QFile>
++
++#include <kaboutdata.h>
++#include <kcmdlineargs.h>
++#include <kglobal.h>
++#include <klocale.h>
++#include <kcomponentdata.h>
++#include <kshell.h>
++#include <kstandarddirs.h>
++#include <kconfiggroup.h>
++#include <kauth.h>
++#include <kdebug.h>
++#include <iostream>
++using namespace KAuth;
++
++int main(int argc, char **argv)
++{
++    QCoreApplication app(argc, argv);
++    KLocale::setMainCatalog("kauthtest");
++    KAboutData about("kauthtest",0, ki18n( "kauthtest" ), "1.0", ki18n("A tool to test some aspects of KAuth."), KAboutData::License_GPL, ki18n( "(C) 2010 Petr Mrázek" ));
++    /*
++    [Domain]
++    Name=KAuth test
++    Icon=kauth-test
++    URL=http://techbase.kde.org/
++    
++    [org.kde.kauth.test.yes]
++    Name=The KAuth test yes action
++    Description=This should always succeed
++    Policy=yes
++    Persistence=session
++    
++    [org.kde.kauth.test.no]
++    Name=The KAuth test no action
++    Description=This should always fail
++    Policy=no
++    Persistence=session
++    
++    [org.kde.kauth.test.admin]
++    Name=The KAuth test admin action
++    Description=This should require superuser login
++    Policy=auth_admin
++    Persistence=session
++    
++    [org.kde.kauth.test.self]
++    Name=The KAuth test self action
++    Description=This should require personal login
++    Policy=auth_self
++    Persistence=session
++    */
++    KCmdLineArgs::init( argc, argv, &about);
++    KComponentData mainComponent(about);
++    KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
++    // YES action
++    {
++        Action action(QString("org.kde.kauth.test.yes"));
++        if(action.status() == Action::Authorized)
++        {
++            qDebug() << "Yestest passed";
++        }
++        else
++        {
++            qDebug() << "Yestest failed";
++        }
++    }
++
++    // NO action
++    {
++        Action action(QString("org.kde.kauth.test.no"));
++        if(action.status() == Action::Denied)
++        {
++            qDebug() << "Notest passed";
++        }
++        else
++        {
++            qDebug() << "Notest failed";
++        }
++    }
++
++    // ADMIN action
++    {
++        Action action(QString("org.kde.kauth.test.admin"));
++        if(action.status() == Action::AuthRequired)
++        {
++            qDebug() << "Admintest passed";
++        }
++        else
++        {
++            qDebug() << "Admintest failed";
++        }
++    }
++
++    // INVALID action
++    {
++        Action action(QString("org.kde.kauth.test.invalid"));
++        if(action.status() == Action::Invalid)
++        {
++            qDebug() << "Invalidtest passed";
++        }
++        else
++        {
++            qDebug() << "Invalidtest failed";
++        }
++    }
++    return 0;
++}
++
++
 Index: kdecore/auth/kauthDoS.cpp
 ===================================================================
 --- kdecore/auth/kauthDoS.cpp	(revision 0)
@@ -1626,7 +1780,7 @@ Index: kdecore/CMakeLists.txt
 ===================================================================
 --- kdecore/CMakeLists.txt	(revision 1125109)
 +++ kdecore/CMakeLists.txt	(working copy)
-@@ -398,6 +398,42 @@
+@@ -398,6 +398,53 @@
  
  ########### next target ###############
  
@@ -1652,6 +1806,17 @@ Index: kdecore/CMakeLists.txt
 +
 +    kde4_install_auth_actions(org.kde.kiosk.pklahelper auth/pklahelper_actions.actions)
 +ENDIF(KAUTH_BACKEND STREQUAL "POLKITQT-1")
++
++########### next target ###############
++
++# KAuth Action test
++set ( kauthtest_SRCS
++auth/kauthtest.cpp
++)
++kde4_install_auth_actions(org.kde.kauth.test auth/org.kde.kauth.test.actions)
++kde4_add_executable(kauthtest NOGUI ${kauthtest_SRCS})
++target_link_libraries(kauthtest ${KDE4_KDECORE_LIBS})
++install(TARGETS kauthtest ${INSTALL_TARGETS_DEFAULT_ARGS})
 +
 +########### next target ###############
 +
