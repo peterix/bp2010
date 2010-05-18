@@ -133,14 +133,14 @@ ViewPropsTimestamp=2009,6,2,11,0,34
 
 Na výpisu \ref{kconf_exmpl} vidět, jak je soubor členěn. Obsahuje skupiny a~záznamy typu klíč-hodnota. Soubory se během načítání konfigurace slučují do jednoho konfiguračního celku (třída KConfig), podle pořadí ve kterém jsou zpracovány. To je určeno třídou KStandardDirs a~jejím seznamem umístění zdrojů. Obecně platí, že globální systémová konfigurace je zpracována jako první.
 
-Celé soubory, skupiny jako je \cppc{Directories} a~jednotlivé záznamy jako je např. \cppc{AutoExpandFolders} je možné nastavit jako nezměnitelné -- \uv{immutable} pomocí přidání značky [\$i]. Jakmile je jednou nastavena na skupinu, soubor nebo hodnotu nezměnitelnost, jsou další objekty stejného typu při načítání ignorovány. V~uvedeném příkladu je nastavena nezměnitelnost pro klíč \cppc{CurrentPalette}, skupinu \cppc{General} a~celý soubor (první řádek). Máme-li tedy například pro uživatele test nastaven Kiosk profil testprofil, který obsahuje konfigurační soubor pro aplikaci Akragator nastavený jako nezměnitelný, nebude moci uživatel nastavení tohoto programu změnit. Obsah konfiguračního souboru v~jeho domovské složce je ignorován.
+Celé soubory, skupiny jako je \cppc{Directories} a~jednotlivé záznamy jako je např. \linebreak\cppc{AutoExpandFolders} je možné nastavit jako nezměnitelné -- \uv{immutable} pomocí přidání značky [\$i]. Jakmile je jednou nastavena na skupinu, soubor nebo hodnotu nezměnitelnost, jsou další objekty stejného typu při načítání ignorovány. V~uvedeném příkladu je nastavena nezměnitelnost pro klíč \cppc{CurrentPalette}, skupinu \cppc{General} a~celý soubor (první řádek). Máme-li tedy například pro uživatele test nastaven Kiosk profil testprofil, který obsahuje konfigurační soubor pro aplikaci Akragator nastavený jako nezměnitelný, nebude moci uživatel nastavení tohoto programu změnit. Obsah konfiguračního souboru v~jeho domovské složce je ignorován.
 
 \subsection*{KAuthorized}
 KAuthorized je rozhraní postavené nad konfiguračním systémem KConfig a~využívá všech jeho vlastností. Poskytuje KDE knihovnám a~aplikacím možnost autorizace obecných akcí, KAction akcí, konfiguračních modulů KControl, a~přistupů k~URL adresám. Chybí zde ovšem omezení přístupu ke zdrojům dat a~konfigurace.
 
 Akce KAction (třída \cppc{KAction} odvozená od \cppc{QAction} z~knihovny Qt) a~obecné akce jsou v~rámci KDE činnosti, které může uživatel vykonat v~aplikaci. Tyto akce mají název a~ten je v~Kiosku použit pro jejich autorizaci. Jsou často asociovány s~nějakým ovládacím prvkem.
 
-Restrikce akcí jsou nastavovány v~konfiguračních souborech ve skupině \cppc{KDE Action Restrictions}. Zpravidla se jich používá ke schování nebo vypnutí s~nimi provázaných prvků rozhraní. Akce může být například otevření menu s~nápovědou, změna pozadí na ploše nebo třeba vypnutí počítače z~menu KDE. Pokud je taková akce zakázána pomocí Kiosku, prvky uživatelského rozhraní se nezobrazí (případně nevytvoří během inicializace aplikace).
+Restrikce akcí jsou nastavovány v~konfiguračních souborech ve skupině \linebreak\cppc{KDE Action Restrictions}. Zpravidla se jich používá ke schování nebo vypnutí s~nimi provázaných prvků rozhraní. Akce může být například otevření menu s~nápovědou, změna pozadí na ploše nebo třeba vypnutí počítače z~menu KDE. Pokud je taková akce zakázána pomocí Kiosku, prvky uživatelského rozhraní se nezobrazí (případně nevytvoří během inicializace aplikace).
 
 Rozdíl mezi obecnou akcí a~akcí KAction je v~rámci \cppc{KAuthorized} mizivý a~funkce \linebreak\cppc{AuthorizeKAction} je obal nad \cppc{authorize}, který před název akce přidá prefix \uv{action/}. Příslušná funkce pak použije globální \cppc{KConfig} objekt aplikace k~ověření, zda má uživatel tuto akci zakázánu (ve výchozím stavu jsou všechny povoleny).
 
@@ -499,7 +499,7 @@ case PolkitQt1::Authority::Unknown:
 \end{mylisting}
 Při výsledku typu \cppc{Unknown} se zjistí, jestli byla chyba typu \cppc{E_CheckFailed} a~v~takovém případě se vrací hodnota \cppc{Action::Invalid}, která znamená, že jde o~neznámou akci.
 \subsection*{OSX Authorization Services}
-Tento framework umožňuje se přímo dotazovat na existenci akcí pomocí funkce \cppc{AuthorizationRightGet()}. Přidání podpory do KAuth je tak jednoduchou záležitostí přidání dotazu na existenci na začátek metody: \ref{osxverify}.
+Tento framework umožňuje se přímo dotazovat na existenci akcí pomocí funkce \linebreak\cppc{AuthorizationRightGet}. Přidání podpory do KAuth je tak jednoduchou záležitostí přidání dotazu na existenci na začátek metody: \ref{osxverify}.
 \begin{mylisting}
 \caption{Ověření existence akce v~OSX Authorization Services}
 \label{osxverify}
