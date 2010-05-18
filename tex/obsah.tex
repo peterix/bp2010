@@ -38,7 +38,7 @@
 \chapter{Úvod}
 V~moderních operačních systémech určených pro desktop (pracovní stanice, notebooky, etc.) se oproti předchozím verzím změnilo mnohé. Jednou takovou změnou je~změna bezpečnostní politiky.
 
-MS Windows postupně získal mnohem lepší zabezpečení ve verzích NT, kdy došlo k~přechodu na nové jádro, a~Vista, kde se poprvé objevila možnost jednoduše povolit obyčejnému uživateli přístup k~nastavení systému pomocí UAC\footnote{User Access Control}. Zamezilo se tak nutnosti 'být administrátorem', což bylo do té doby výchozí nastavení po intalaci. Ve výsledku má uživatel povoleny akce, ke kterým by jinak přístup neměl.
+MS Windows postupně získal mnohem lepší zabezpečení ve verzích NT, kdy došlo k~přechodu na nové jádro, a~Vista, kde se poprvé objevila možnost jednoduše povolit obyčejnému uživateli přístup k~nastavení systému pomocí UAC\footnote{User Access Control}. Zamezilo se tak nutnosti \uv{být administrátorem}, což bylo do té doby výchozí nastavení po intalaci. Ve výsledku má uživatel povoleny akce, ke kterým by jinak přístup neměl.
 
 Unixové a~unixu podobné systémy se vyvíjely směrem opačným -- od práv pevně svázaných s~jeho účtem a~skupinou, k~mnohem volnějšímu pojetí. Za zmínku stojí například program sudo, který umožňuje uživateli spouštět programy s~jinými právy než jsou jeho vlastní (převážně superuživatelská práva) případně program su, který je ještě staršího data.
 
@@ -82,7 +82,7 @@ Každá KDE aplikace má několik základních částí, obsažených ve struktu
 
 \cppc{KComponentData} obsahuje informace relevantní pro jednu komponentu aplikace. Platí, že aplikace může mít jednu hlavní komponentu.
 
-\cppc{KAboutData} je soubor základních informace o~programu -- v~případě hlavní komponenty jsou tyto informace použity také pro dialog "O~Aplikaci" (About). Určuje název komponenty. Ten se použije pro načítání konfigurace a~pro výběr složky s~daty aplikace. Je nutno poznamenat, že aplikace může mít více než jednu komponentu.
+\cppc{KAboutData} je soubor základních informace o~programu -- v~případě hlavní komponenty jsou tyto informace použity také pro dialog \uv{O~Aplikaci} (About). Určuje název komponenty. Ten se použije pro načítání konfigurace a~pro výběr složky s~daty aplikace. Je nutno poznamenat, že aplikace může mít více než jednu komponentu.
 
 \cppc{KSharedConfig} obsahuje sloučenou konfiguraci efektivní pro program a~zajišťuje, že konfigurace je sdílena mezi komponentami -- šetří se tak pamětí a~časem nutným k~načtení konfigurace.
 
@@ -90,7 +90,7 @@ Každá KDE aplikace má několik základních částí, obsažených ve struktu
 
 Právě \cppc{KStandardDirs} a~\cppc{KSharedConfig} jsou relevantní pro popis načítání konfigurace. Během inicializace komponenty se nejdříve načítá obecná konfigurace. Ta obsahuje nastavení pro celé KDE a~zmíněnou aplikaci, ovšem bez začleněných Kiosk profilů.
 
-Potom je volána metoda \cppc{KStandardDirs::addCustomized}, která vyhledá Kiosk profily platné pro uživatele (na *nix systémech je soubor s~jejich seznamem odkazován z~'/etc/kde4rc') a~zařadí je s~prioritou (narozdíl od cest ke zdrojům určených v~konstruktoru \cppc{KStandarDirs} jsou umístěny na začátek seznamu složek s~konfiguračními zdroji).
+Potom je volána metoda \cppc{KStandardDirs::addCustomized}, která vyhledá Kiosk profily platné pro uživatele a~zařadí je s~prioritou. Na *nix systémech je soubor s~jejich seznamem odkazován z~\uv{/etc/kde4rc}. Na rozdíl od cest ke zdrojům určených v~konstruktoru \cppc{KStandarDirs} jsou umístěny na začátek seznamu složek s~konfiguračními zdroji.
 
 Platí, že pokud má uživatel přiřazen svůj vlastní Kiosk profil, nezpracovávají se dále Kiosk profily pro skupiny v~nichž je členem. V~opačném případě, kdy uživatel nemá vlastní profil, přidají se s~prioritou do cest v~KStandardDirs všechny aplikovatelné skupinové profily. Pokud se počet cest s~konfigurací změnil, je po návratu z~addCustomized konfigurace znovu načtena.
 
@@ -445,7 +445,7 @@ Dále je potřeba implementovat konvertor Kiosk profilů na nastavení lokální
 
 Dalším omezením konvertoru je, že pokud bude použita jiná autorita než PolicyKit Local Authority, konverze s~ní nebude fungovat. Ale vzhledem k~tomu, že tato autorita je výchozí, předpokládám že bude k~dispozici.
 
-V~konvertoru je nutné zohlednit to, že postup aplikace profilů v~Kiosku je jiný než postup ověření autorizace v~PolicyKitu. Musí se 'nasimulovat' Kiosk a~jeho zvláštnosti, aby se nezměnilo chování KAuthorized.
+V~konvertoru je nutné zohlednit to, že postup aplikace profilů v~Kiosku je jiný než postup ověření autorizace v~PolicyKitu. Musí se \uv{nasimulovat} Kiosk a~jeho zvláštnosti, aby se nezměnilo chování KAuthorized.
 
 Integrace KAuth do KAuthorized opět není triviální záležitostí -- je to sice otázka několika volání funkcí KAuth, ale autorizační funkce KAuthu na rozdíl od systémů na kterých staví nevrací chybové kódy v~případě, že akce neexistuje. Toto bude potřeba změnit.
 
@@ -563,7 +563,7 @@ Ze všech uvedených metod je nejvhodnější, alespoň podle komentářů v~kó
 Pro zjištění kde je chyba jsem vytvořil jednoduchý test kauthDoS. Ten v~nekonečném cyklu volá \cppc{KAuth::Action::status()} a~v~pravidelných intervalech vypisuje hlášení. Když program přestane vypisovat, znamená to, že došlo k~chybě. Démon polkitd a~program kauthDoS byly spuštěny v~debuggeru gdb a~byly získány \uv{backtrace} z~obou programů (výpisy \ref{btrac1} a~\ref{btrac2}). Podle těch to vypadá, že problém vzniká během komunikace jednotlivých částí PolicyKitu. Chybu jsem ohlásil jeho autorovi (David Zeuthen) a~čekám na odpověď.
 
 \begin{mylisting}
-\caption{Backtrace z~démona polkitd při 'zamrznutí' (zkrácený)}
+\caption{Backtrace z~démona polkitd při \uv{zamrznutí} (zkrácený)}
 \label{btrac1}
 \begin{lstlisting}
 #0  poll () from /lib/libc.so.6
@@ -586,7 +586,7 @@ Pro zjištění kde je chyba jsem vytvořil jednoduchý test kauthDoS. Ten v~nek
 \end{mylisting}
 
 \begin{mylisting}
-\caption{Backtrace z~testovacího polkitd při 'zamrznutí' (zkrácený)}
+\caption{Backtrace z~testovacího polkitd při \uv{zamrznutí} (zkrácený)}
 \label{btrac2}
 \begin{lstlisting}
 #0  in poll () from /lib/libc.so.6
@@ -777,7 +777,7 @@ V~příloze B jsou informace o~umístění zdrojových kódů, obsahu přiložen
 \item[KioskTool] je aplikace pro správu Kiosk profilů. V~KDE 3 umožňovala jednoduše nastavit některé aspekty Kiosku/KConfigu bez nutnosti měnit profily ručně.
 \item[KDE] je komunita vývojářů pracujících na tzv. KDE Software Compilation. Zde používám označení KDE ve starém významu -- jako uživatelské prostředí.
 \item[PolicyKit] je starší verze autorizačního rozhraní dostupná v~Linuxu.
-\item[PolicyKit1,] nebo také "polkit" je jeho novější verze. Právě tu budu převážně používat.
+\item[PolicyKit1,] nebo také \uv{polkit} je jeho novější verze. Právě tu budu převážně používat.
 \item[PolicyKit autorita] je centrálním prvkem systému PolicyKit. Slouží pro uložení autorizačních dat.
 \item[PolicyKit Local Authority] je výchozí implementace PolicyKit autority. Používá textové soubory.
 \item[polkit-qt] je soubor knihoven obalující PolicyKit.
