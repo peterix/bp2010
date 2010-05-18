@@ -458,61 +458,10 @@ Otázkou tedy je zda má vůbec smysl pokračovat. Rozhodl jsem se, že implemen
 Jak jsem již zmínil v~sekci \ref{mozres}, je potřeba rozšířit KAuth tak, aby vracel vedle informace o~úspěšnosti autorizace také zvláštní hodnotu pro případ, že akce není použitému systémem pro autorizaci známa. Důvodem je, že  Všechny systémy, které KAuth podporuje umožňují toto zjistit a~neměl by být tedy problém tuto vlastnost so KAuthu přidat.
 \subsection*{PolicyKit a~Policykit1}
 Tyto systémy jsou si velmi podobné. Ve výchozím stavu vypadá funkce pro získání autorizace takto: \ref{kauth-oldmethod}. Hodnota \cppc{Unknown} je vrácena v~případě, kdy dojde k~chybě během autorizace. Důvod chyby lze zjistit bližším dotazováním autorizačního rozhraní. Úprava metody pak vypadá takto: \ref{kauth-newmethod}.
-\begin{mylisting}
-\caption{Autorizace akce v~PolicyKit1}
-\label{kauth-oldmethod}
-\begin{lstlisting}[language=C++]
-Action::AuthStatus Polkit1Backend::actionStatus(const QString &action)
-{
-    PolkitQt1::UnixProcessSubject subject(QCoreApplication::applicationPid());
-    PolkitQt1::Authority::Result r =
-        PolkitQt1::Authority::instance()->
-        checkAuthorizationSync(action, &subject, PolkitQt1::Authority::None);
-    switch (r) {
-    case PolkitQt1::Authority::Yes:
-        return Action::Authorized;
-    case PolkitQt1::Authority::No:
-    case PolkitQt1::Authority::Unknown:
-        return Action::Denied;
-    default:
-        return Action::AuthRequired;
-    }
-}
-\end{lstlisting}
-\end{mylisting}
-\begin{mylisting}
-\caption{Autorizace akce v~PolicyKit1 po úpravách}
-\label{kauth-newmethod}
-\begin{lstlisting}[language=C++]
-...
-case PolkitQt1::Authority::Unknown:
-    PolkitQt1::Authority::ErrorCode error =
-        PolkitQt1::Authority::instance()->lastError();
-    PolkitQt1::Authority::instance()->clearError()
-    // E_CheckFailed should indicate that an action doesn't exist
-    if(error == PolkitQt1::Authority::E_CheckFailed)
-        return Action::Invalid;
-    else // other errors. we treat them like before
-        return Action::Denied;
-...
-\end{lstlisting}
-\end{mylisting}
+
 Při výsledku typu \cppc{Unknown} se zjistí, jestli byla chyba typu \cppc{E_CheckFailed} a~v~takovém případě se vrací hodnota \cppc{Action::Invalid}, která znamená, že jde o~neznámou akci.
 \subsection*{OSX Authorization Services}
 Tento framework umožňuje se přímo dotazovat na existenci akcí pomocí funkce \linebreak\cppc{AuthorizationRightGet}. Přidání podpory do KAuth je tak jednoduchou záležitostí přidání dotazu na existenci na začátek metody: \ref{osxverify}.
-\begin{mylisting}
-\caption{Ověření existence akce v~OSX Authorization Services}
-\label{osxverify}
-\begin{lstlisting}[language=C++]
-Action::AuthStatus AuthServicesBackend::actionStatus(const QString &action)
-{
-    // check if the action exists first, return error if not
-    OSStatus exists = AuthorizationRightGet(action.toUtf8(), NULL);
-    if(exists != errAuthorizationSuccess)
-        return Action::Invalid;
-...
-\end{lstlisting}
-\end{mylisting}
 %REF:http://developer.apple.com/mac/library/documentation/Security/Reference/authorization_ref/Reference/reference.html
 
 \section{Přesun vyhodnocení omezení na zdroje do KAuthorized}
@@ -838,3 +787,58 @@ Příklad postupu ze složky se zdrojovým kódem, umístěné tak, aby se do n�
 \cppc{sudo make install}
 
 Při použití kde-devel stačí umístit zdrojové kódy KioskTool mezi zdrojové kódy ostatních částí KDE a~sestavit je pomocí \cppc{cmakekde}.
+
+\chapter{Fragmenty kódu - úpravy v KAuth}
+\begin{mylisting}
+\caption{Autorizace akce v~PolicyKit1}
+\label{kauth-oldmethod}
+\begin{lstlisting}[language=C++]
+Action::AuthStatus Polkit1Backend::actionStatus(const QString &action)
+{
+    PolkitQt1::UnixProcessSubject subject(QCoreApplication::applicationPid());
+    PolkitQt1::Authority::Result r =
+        PolkitQt1::Authority::instance()->
+        checkAuthorizationSync(action, &subject, PolkitQt1::Authority::None);
+    switch (r) {
+    case PolkitQt1::Authority::Yes:
+        return Action::Authorized;
+    case PolkitQt1::Authority::No:
+    case PolkitQt1::Authority::Unknown:
+        return Action::Denied;
+    default:
+        return Action::AuthRequired;
+    }
+}
+\end{lstlisting}
+\end{mylisting}
+\begin{mylisting}
+\caption{Autorizace akce v~PolicyKit1 po úpravách}
+\label{kauth-newmethod}
+\begin{lstlisting}[language=C++]
+...
+case PolkitQt1::Authority::Unknown:
+    PolkitQt1::Authority::ErrorCode error =
+        PolkitQt1::Authority::instance()->lastError();
+    PolkitQt1::Authority::instance()->clearError()
+    // E_CheckFailed should indicate that an action doesn't exist
+    if(error == PolkitQt1::Authority::E_CheckFailed)
+        return Action::Invalid;
+    else // other errors. we treat them like before
+        return Action::Denied;
+...
+\end{lstlisting}
+\end{mylisting}
+
+\begin{mylisting}
+\caption{Ověření existence akce v~OSX Authorization Services}
+\label{osxverify}
+\begin{lstlisting}[language=C++]
+Action::AuthStatus AuthServicesBackend::actionStatus(const QString &action)
+{
+    // check if the action exists first, return error if not
+    OSStatus exists = AuthorizationRightGet(action.toUtf8(), NULL);
+    if(exists != errAuthorizationSuccess)
+        return Action::Invalid;
+...
+\end{lstlisting}
+\end{mylisting}
