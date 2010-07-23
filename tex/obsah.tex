@@ -42,29 +42,115 @@ MS Windows postupně získal mnohem lepší zabezpečení ve verzích NT, kdy do
 
 Unixové a~unixu podobné systémy se vyvíjely směrem opačným -- od práv pevně svázaných s~jeho účtem a~skupinou, k~mnohem volnějšímu pojetí. Za zmínku stojí například program sudo, který umožňuje uživateli spouštět programy s~jinými právy než jsou jeho vlastní (převážně superuživatelská práva) případně program su, který je ještě staršího data.
 
-Nově je k~dispozici také PolicyKit, který plní podobnou úlohu jako UAC na OS Windows. Aplikace využívající PolicyKit nemusejí mít pro změnu systémového nastavení jako je třeba datum a~čas superuživatelská práva.
+Nově je k~dispozici také PolicyKit, který alespoň z pohledu uživatele plní podobnou úlohu jako UAC na OS Windows. Aplikace využívající PolicyKit nemusejí mít pro změnu systémového nastavení jako je třeba datum a~čas superuživatelská práva.
 
 Prostředí KDE (po přeznačení KDE Software Compilation) je možné provozovat na více operačních systémech. Aplikace by tak musely používat řešení jako je UAC nebo PolicyKit, což by omezilo jejich přenositelnost. Tyto řešení tedy bylo potřeba nějak obalit. Za tímto účelem vzniklo rozhraní KAuth.
 
-V~rámci KDE však bylo možné již dříve měnit práva uživatelů -- skrývat položky menu, zamezit použití terminálu a~podobně. K~tomu slouží Kiosk, což je kombinace vlastností několika systémů obsažených v~KDE.
+V~rámci KDE však bylo možné již dříve měnit práva uživatelů -- skrývat položky menu, zamezit použití terminálu a~podobně. K~tomu slouží Kiosk, což je rozhraní nad konfiguračním systémem KDE KConfig.
 
-Tyto technologie a~způsob jakým budou v~práci využity jsou blíže popsány ve druhé kapitole. Třetí kapitola popisuje integraci systému KAuth do rozhraní KAuthorized a~implementaci nástroje pro migraci dat. Čtvrtá kapitola se zabývá portem nástroje KioskTool do KDE4, úpravami v~něm a~návrhem nového grafického rozhraní.
+Společně s nutnými základy bezpečnosti v systému linux jsou tyto technologie a~způsob jakým budou v~práci využity blíže popsány ve druhé kapitole. Třetí kapitola popisuje integraci systému KAuth do rozhraní KAuthorized a~implementaci nástroje pro migraci dat. Čtvrtá kapitola obsahuje popis implementace testů integrace a jejich výsledky. Pátá kapitola se zabývá portem nástroje KioskTool do KDE4 a úpravami v~něm. Šestá kapitola práci uzavírá a navrhuje další možný postup.
 
-\chapter{Základní technologie}
-V~této kapitole popíši blíže zmíněné rozhraní a~aplikace, tak aby bylo jasné jak fungují a~jaké podmínky musí být splněny, aby bylo výsledné řešení ekvivalentem původního.
+Předpokládá se alespoň uživatelská znalost operačního systému Linux a grafického prostředí KDE.
 
-Dříve než se pustíme do samotného popisu technologií by bylo dobré prostudovat přílohu A. Ta vymezuje některé pojmy zde použité.
+\section{Co je to KDE Software Compilation?}
+Původně byl všechen software KDE součástí jedné velké kolekce základních utilit pod názvem \uv{K Desktop Environment}. Protože byly všechny programy a knihovny součástí této jedné kolekce, stačilo ji vydávat pod jednotným názvem synchronizovaně. Jak tým KDE a počet aplikací rostl, mnoho z těchto programů začalo využívat své vlastní vývojové cykly a oddělily se od původní kolekce.
+
+KDE Software Compilation (dále KDE SC) je množina knihoven a programů vytvářených komunitou KDE, které stále používají původní synchronizovaný vývojový cyklus a vytvářejí tak základ pro uživatelsky přívětivé  grafické prostředí dostupné pro operační systémy Linux, Windows a Mac OSX.
+
+KDE SC sestává z knihoven KDE-Libs, které tvoří podklad pro všechny programy KDE a mnoha balíků softwaru. KDEBase je balík základních programů KDE a obsahuje mimo jiné i plochu Plasma a prohlížeč souboroveho systému Dolphin (má podobný účel jako program Explorer ve Windows). Součástí KDE je mnoho dalších balíků softwaru.
+
+Zvláštní zmínku si zaslouží repozitáře extragear a kdereview. Extragear obsahuje programy a knihovny nesynchronizované s vývojovým cyklem KDE SC. Kdereview pak software, který je zvažován pro začlenění do některého z balíků KDE SC.
+
+kdereview: http://websvn.kde.org/trunk/kdereview/
+extragear: http://extragear.kde.org/
+
+CITACE: http://www.kde.org/community/whatiskde/softwarecompilation.php
+
+\section{Cíle práce}
+Práce se z velké části zabývá knihovnami v balíku KDE-Libs a autorizačními rozhraními v nich obsaženými -- Kiosk a KAuth. Kiosk je starší rozhraní, postavené nad konfiguračním rozhraním KConfig. KAuth je novějšího data. Obě rozhraní slouží k autorizaci akcí. Akcí se zde rozumí nějaká konkrétní akce proveditelná uživatelem v rámci aplikace, kterou může administrátor zakázat nebo povolit. KAuth je narozdíl od Kiosku schopen také tyto akce provádět spouštěním pomocných programů s jinými právy, než má jeho uživatel. Kiosk má některá další specifika, například zdroje dat nebo povolování přístupu k adresám URL. Zdroji dat rozumíme určitý typ souborů používaný v aplikacích KDE. Například omezením pozadí na plochu (alespoň teoreticky) zamezíme tomu, aby uživatel mohl měnit pozadí plochy na jiné, než instalované v systému.
+
+Hlavním cílem práce je integrovat KAuth do Kiosku, aby mohl být používán pro ukládání povolení akcí a přístupu ke zdrojům dat.
+
+Další část práce se bude soustředit na dokončení portu (přenesení) programu KioskTool z prostředí KDE3 do prostředí KDE SC 4. Nedokončený port je obsažen v repozitáři extragear.
+ODKAZ: 
+
+\chapter{Bezpečnost v systému linux}
+Zde se jedná zejména o bezpečnost interní -- tedy řízení přístupu \i{subjektů} k \i{prostředkům} systému. Subjektem mohou být například procesy, uživatelé nebo skupiny uživatelů. Prostředky pak mohou být soubory a adresáře, zařízení (speciální typ souborů), čísla portů, nebo zmíněné akce autorizačních rozhraní Kiosk a KAuth.
+
+Uživatelé se do systému přihlašují, přičemž dochází k ověření jejich identity -- autentizaci. V systému Linux lze řešit přihlašování pomocí mechanismu PAM\footnote{Pluggable Authentication Modules}. Ten umožňuje psát programy vyžadující autentizaci nazávisle na způsobu jakým je jí dosaženo. Nezáleží pak, jestli se uživatel přihlašuje heslem nebo například otiskem prstu. Další způsoby autentizace je možné do systému doplnit pomocí zásuvných modulů. Mechanismus však nutné použít -- distribuce Slackware jej ve výchozím stavu neobsahuje. Podrobnější popis lze nalézt například v~článku, který vyšel na Root.cz\cite{rootpam}. Pokud je to vyžadováno, KAuth využívá mechanismu PAM k ověření totožnosti uživatele.
+
+Dále bude zmíněn standardní způsob řízení přístupu k souborům a adresářům. Jedná se pouze o nejzákladnější poznatky.
+
+%Dříve než se pustíme do samotného popisu technologií by bylo dobré prostudovat přílohu A. Ta vymezuje některé další pojmy zde použité.
+
+\section{Souborový systém a řízení přístupu k souborům}
+Unixu podobné operační systémy mají tzv. virtuální systém souborů, kde jsou všechny soubory na všech připojených souborových systémech umístěny v jedné hierarchii. Tato hierarchie souborů a adresářů má jeden kořenový adresář \uv{/}. Adresáře obsahují soubory a platí, že adresář je speciálním typem souboru (existují také další speciální soubory pro zařízení). Adresáře dále obsahují dvě speciální položky: \uv{..} odkazující na adresář o úroveň výše a \uv{.} odkazující na adresář samotný (identita).
+
+V hierarchii mohou být dále symbolické a pevné odkazy. Symbolické odkazy mohou odkazovat jak na soubory, tak na adresáře. Při smazání odkazovaného souboru nebo adresáře symbolický odkaz zůstáva. Pevné odkazy pak mohou být pouze na soubory. Takto odkazovaný soubor je smazán společně s posledním pevným odkazem na něj.
+
+Obrázek - jak vypadá souborový systém s odkazy.
+
+Ke každému souboru a adresáři jsou přiřazena metadata, která popisují jejich další vlastnosti. Z hlediska řízení přístupu je podstatný uživatel a skupina vlastnící soubor, práva pro čtení (r), zápis (w) a spuštění (x) uživatelem, skupinou a ostatními subjekty a tzv. setuid a setgid bity. U obyčejných souborů označuje právo pro spuštění to, že je to spustitelný program nebo skript. U adresářů spustitelnost označuje fakt, že je možné vypsat jejich obsah.
+CITACE: http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO.pdf
+
+Setuid bit určuje, že spuštěný program má běžet pod účtem vlastníka souboru. Setgid znamená to stejné pro skupiny. Bez nastavených setuid a setgid bitů je program spuštěn pod účtem uživatele, který jej spouští.
+CITACE: http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO.pdf
+
+Obrázek - vysvětlení zápisu -rwxrwxrwx ?
+
+Cesta ve virtuálním souborovém systému je řetězcem po sobě jdoucích názvů adresářů oddělených znakem \uv{/}. Rozlišujeme cestu absolutní, začínající v kořenovém adresáři a relativní, která vede obecně mezi dvěma místy v hierarchii.
+Příklady cest:
+
+Doplnit
+
+\section{Procesy a přístup k jejich prostředkům}
+TODO: Něco o tom, jak UID a GID funguji u procesu, jaky to ma vliv na pristup uzivatelum k pameti procesu, debugging a podobne.
 
 \section{Kiosk}
-Zde je čerpáno převážně z~úvodu do Kiosku \cite{Kioskintro} a~zdrojového kódu kdelibs.
+Zde je čerpáno převážně z~úvodu do Kiosku \cite{Kioskintro} a~zdrojového kódu kdelibs CITACE!.
 
-Z~pohledu administrátora Kiosk nabízí možnost upravit si KDE pro své vlastní účely. Například schovat některé položky v~grafickém rozhraní aplikací, znemožnit uživatelům měnit nastavení a~data aplikací nebo zamezit spuštění terminálu. Toho je docíleno nastavením některých částí konfigurace jako nezměnitelné (immutable) nebo vytvořením tzv. Kiosk profilů a~přiřazením těchto profilů k~uživatelům a~skupinám. Tyto profily jsou složky obsahující v~zásadě stejné soubory jako používá KConfig.
+Z~pohledu administrátora Kiosk nabízí možnost upravit si KDE pro své vlastní účely. Například schovat některé položky v~grafickém rozhraní aplikací, znemožnit uživatelům měnit nastavení a~data aplikací nebo zamezit spuštění terminálu. Z pohledu programátora je to jednoduché rozhraní umožňující autorizaci akcí.
 
-Kiosk je vlastně obecný pojem pro několik rozdílných vlastností systému KConfig a~s~ním provázanými částmi KDE. Nelze přesně určit jedno konkrétní místo ve zdrojovém kódu KDE, kde by bylo popsáno jakým způsobem funguje, ale podrobným zkoumáním lze vysledovat, jak je docíleno výsledného efektu. Z~velké části je funkce Kiosku závislá na funkci KConfigu a~způsobu jakým jsou načítány Kiosk profily během spouštění KDE aplikací a~jejich komponent. Toto si blíže popíšeme, protože je to podstatné pro pochopení řešeného problému.
+Kiosk je vlastně souhrnný pojem pro určité vlastnosti konfiguračního systému KConfig, jeho způsob načítání konfigurace z tzv. Kiosk profilů, rozhraní KAuthorized a specifikace, jakým způsobem jsou autorizace akcí uloženy v KConfigu. Nelze přesně určit jedno konkrétní místo ve zdrojovém kódu KDE, kde by bylo popsáno jakým způsobem funguje, ale podrobným zkoumáním lze vysledovat, jak je docíleno výsledného efektu.
+
+Obrázek: architektura Kiosk, Kconfig
+
+\subsection*{KConfig}
+Kconfig je v Kioksu použit pro uložení informace o tom, ke kterým akcím a jiným zdrojům má uživatel povoleno přistupovat. Konfigurace je uložena v souborech nápadně připomínajících .INI soubory se kterými se dá pomněrně jednoduše pracovat.
+\begin{mylisting}
+\caption{Ukázka konfiguračního souboru KConfig}
+\label{kconf_exmpl}
+\begin{lstlisting}[language=]
+[$i]
+[Colors]
+CurrentPalette[$i]=Forty Colors
+
+[ColumnMode]
+FontWeight=50
+PreviewSize=176
+
+[DetailsMode]
+FontWeight=50
+
+[General][$i]
+AutoExpandFolders=true
+\end{lstlisting}
+\end{mylisting}
+
+Na výpisu \ref{kconf_exmpl} vidět, jak je soubor členěn. Obsahuje skupiny a~záznamy typu klíč-hodnota. Soubory se během načítání konfigurace slučují do jednoho konfiguračního celku (třída KConfig), podle pořadí ve kterém jsou zpracovány. Jednotlivé skupiny z načítaných souborů se slučují do objektů typu KConfigGroup -- lze je získat od KConfig objektu jako podle jejich názvu. Pro pořadí zpracování konfiguračních souborů obecně platí, že globální systémová konfigurace je zpracována jako první.
+
+FIXME: kde jsou defaultní zdroje konfigurace, jaké je defaultní pořadí bed Kiosku
+
+Celé soubory, skupiny jako je \cppc{General} a~jednotlivé záznamy jako je např. \linebreak\cppc{AutoExpandFolders} je možné nastavit jako nezměnitelné -- \uv{immutable} pomocí přidání značky [\$i]. Jakmile je jednou nastavena na skupinu, soubor nebo hodnotu nezměnitelnost, jsou další objekty stejného typu při načítání ignorovány. V~uvedeném příkladu \ref{kconf_exmpl} je nastavena nezměnitelnost pro klíč \cppc{CurrentPalette}, skupinu \cppc{General} a~celý soubor (první řádek). Máme-li tedy například nastavení programu Akregator (čtečka RSS) z příkladu \ref{kconf_exmpl} umístěno v některém adresáři s globálním nastavením, budou položky, které jsou ve výsledku nezměnitelné uživatelům vnuceny. Uživatel je pak sice stále může měnit ve svých vlastních konfiguračních souborech ve svém domovském adresáři, ale nezměnitelnost se postará o to, že budou takovéto změny ignorovány. Když nejsou položky v globálním konfiguračním souboru nastaveny jako nezměnitelné, znamená to, že jsou chápány jako výchozí nastavení.
+
+Je zřejmé, že řešení s pouze jedním umístěním pro globální konfiguraci není ideální. Konfigurace se pak totiž vztahuje na všechny uživatele systému. Kiosk proto zavádí tzv. Kiosk profily. Ty jsou pak přiřazeny uživatelům a skupinám. Dále je popsáno načítání Kiosk profilů podrobněji.
 
 \subsection*{Načítání konfigurace během spuštění aplikace}
-Každá KDE aplikace má několik základních částí, obsažených ve struktuře \cppc{KGlobal} \ref{fig:kglobal}.
+Každá KDE aplikace má několik základních částí, obsažených ve jmenném prostoru \cppc{KGlobal} \ref{fig:kglobal}.
 
+REF: http://api.kde.org/4.x-api/kdelibs/kdecore/namespaceKGlobal.html
+
+TODO: nahradit \ref{fig:kglobal}!
 \begin{figure}[h]
     \centering
     \begin{verbatim}
@@ -90,95 +176,320 @@ Každá KDE aplikace má několik základních částí, obsažených ve struktu
 
 Právě \cppc{KStandardDirs} a~\cppc{KSharedConfig} jsou relevantní pro popis načítání konfigurace. Během inicializace komponenty se nejdříve načítá obecná konfigurace. Ta obsahuje nastavení pro celé KDE a~zmíněnou aplikaci, ovšem bez začleněných Kiosk profilů.
 
-Potom je volána metoda \cppc{KStandardDirs::addCustomized}, která vyhledá Kiosk profily platné pro uživatele a~zařadí je s~prioritou. Na *nix systémech je soubor s~jejich seznamem odkazován z~\uv{/etc/kde4rc}. Na rozdíl od cest ke zdrojům určených v~konstruktoru \cppc{KStandarDirs} jsou umístěny na začátek seznamu složek s~konfiguračními zdroji.
+Potom je volána metoda \cppc{KStandardDirs::addCustomized}, která vyhledá Kiosk profily platné pro uživatele a~zařadí je mezi zdroje konfigurace s~prioritou . Na *nix systémech je soubor s~jejich seznamem odkazován z~\uv{/etc/kde4rc}. Na rozdíl od cest ke zdrojům určených v~konstruktoru \cppc{KStandarDirs} jsou umístěny na začátek seznamu složek s~konfiguračními zdroji.
 
 Platí, že pokud má uživatel přiřazen svůj vlastní Kiosk profil, nezpracovávají se dále Kiosk profily pro skupiny v~nichž je členem. V~opačném případě, kdy uživatel nemá vlastní profil, přidají se s~prioritou do cest v~KStandardDirs všechny aplikovatelné skupinové profily. Pokud se počet cest s~konfigurací změnil, je po návratu z~addCustomized konfigurace znovu načtena.
 
-\subsection*{KConfig}
-Kconfig je, jak již bylo řečeno, systém pro načítání a~ukládání nastavení v~KDE. V~základu je navržen tak, aby bylo možné použít různé způsoby uložení nastavení, ale v~praxi jsou použity soubory formátu INI (jsou jednoduché a~rychle se načítají).
-\begin{mylisting}
-\caption{Ukázka konfiguračního souboru KConfig}
-\label{kconf_exmpl}
-\begin{lstlisting}[language=]
-[$i]
-[Colors]
-CurrentPalette[$i]=Forty Colors
+\subsection*{Rozhraní KAuthorized}
+!!!!DOPLNIT NĚJAKÝ PĚKNÝ DIAGRAM, který to trochu oživí.
 
-[ColumnMode]
-FontWeight=50
-PreviewSize=176
-
-[Desktop Entry]
-DefaultProfile=Shell.profile
-
-[DetailsMode]
-FontWeight=50
-
-[Favorite Profiles]
-Favorites=
-
-[General][$i]
-AutoExpandFolders=true
-BrowseThroughArchives=true
-ConfirmClosingMultipleTabs=false
-FilterBar=true
-FirstRun=false
-RenameInline=true
-ShowCopyMoveMenu=true
-ShowFullPath=true
-ShowSpaceInfo=true
-ViewPropsTimestamp=2009,6,2,11,0,34
-\end{lstlisting}
-\end{mylisting}
-
-Na výpisu \ref{kconf_exmpl} vidět, jak je soubor členěn. Obsahuje skupiny a~záznamy typu klíč-hodnota. Soubory se během načítání konfigurace slučují do jednoho konfiguračního celku (třída KConfig), podle pořadí ve kterém jsou zpracovány. To je určeno třídou KStandardDirs a~jejím seznamem umístění zdrojů. Obecně platí, že globální systémová konfigurace je zpracována jako první.
-
-Celé soubory, skupiny jako je \cppc{Directories} a~jednotlivé záznamy jako je např. \linebreak\cppc{AutoExpandFolders} je možné nastavit jako nezměnitelné -- \uv{immutable} pomocí přidání značky [\$i]. Jakmile je jednou nastavena na skupinu, soubor nebo hodnotu nezměnitelnost, jsou další objekty stejného typu při načítání ignorovány. V~uvedeném příkladu je nastavena nezměnitelnost pro klíč \cppc{CurrentPalette}, skupinu \cppc{General} a~celý soubor (první řádek). Máme-li tedy například pro uživatele test nastaven Kiosk profil testprofil, který obsahuje konfigurační soubor pro aplikaci Akragator nastavený jako nezměnitelný, nebude moci uživatel nastavení tohoto programu změnit. Obsah konfiguračního souboru v~jeho domovské složce je ignorován.
-
-\subsection*{KAuthorized}
 KAuthorized je rozhraní postavené nad konfiguračním systémem KConfig a~využívá všech jeho vlastností. Poskytuje KDE knihovnám a~aplikacím možnost autorizace obecných akcí, KAction akcí, konfiguračních modulů KControl, a~přistupů k~URL adresám. Chybí zde ovšem omezení přístupu ke zdrojům dat a~konfigurace.
 
-Akce KAction (třída \cppc{KAction} odvozená od \cppc{QAction} z~knihovny Qt) a~obecné akce jsou v~rámci KDE činnosti, které může uživatel vykonat v~aplikaci. Tyto akce mají název a~ten je v~Kiosku použit pro jejich autorizaci. Jsou často asociovány s~nějakým ovládacím prvkem.
+Akce KAction (třída \cppc{KAction} odvozená od \cppc{QAction} z~knihovny Qt) a~obecné akce jsou v~rámci KDE činnosti, které může uživatel vykonat v~aplikaci. Tyto akce mají název a~ten je v~Kiosku použit pro jejich autorizaci. Jsou často asociovány s~nějakým ovládacím prvkem grafického rozhraní aplikace.
 
-Restrikce akcí jsou nastavovány v~konfiguračních souborech ve skupině \linebreak\cppc{KDE Action Restrictions}. Zpravidla se jich používá ke schování nebo vypnutí s~nimi provázaných prvků rozhraní. Akce může být například otevření menu s~nápovědou, změna pozadí na ploše nebo třeba vypnutí počítače z~menu KDE. Pokud je taková akce zakázána pomocí Kiosku, prvky uživatelského rozhraní se nezobrazí (případně nevytvoří během inicializace aplikace).
+Restrikce akcí jsou nastavovány v~konfiguračních souborech ve skupině \linebreak\cppc{KDE Action Restrictions}. Zpravidla se jich používá ke schování nebo vypnutí s~nimi provázaných prvků rozhraní. Akce může být například otevření menu s~nápovědou, změna pozadí na ploše nebo vypnutí počítače z~menu KDE. Pokud je taková akce zakázána pomocí Kiosku, prvky uživatelského rozhraní se nezobrazí (případně nevytvoří během inicializace aplikace).
 
 Rozdíl mezi obecnou akcí a~akcí KAction je v~rámci \cppc{KAuthorized} mizivý a~funkce \linebreak\cppc{AuthorizeKAction} je obal nad \cppc{authorize}, který před název akce přidá prefix \uv{action/}. Příslušná funkce pak použije globální \cppc{KConfig} objekt aplikace k~ověření, zda má uživatel tuto akci zakázánu (ve výchozím stavu jsou všechny povoleny).
 
-Omezení přístupu ke zdrojům je nastavováno ve skupině \cppc{KDE Resource Restrictions} a~je umístěno do globálního konfiguračního souboru jako je \cppc{kdeglobals}. Omezením zdrojů lze docílit toho, že aplikace \uv{neuvidí} zdroje umístěné v~uživatelově domovské složce. Lze tak zamezit například tomu, aby si uživatel aplikace rozšiřoval. I~když je tato část Kiosku velmi podobná ostatním autorizačním funkcím v~\cppc{KAuthorized}, není do něj přímo začleněna. Důvodem je, že je úzce provázána s~třídou \cppc{KStandardDirs}, která tyto omezení zpracovává a~používá pro vytvoření seznamů složek se zdroji. Seznam těchto omezení je potřeba znát ještě před tím, než je zcela načtena konfigurace z~prostého důvodu -- je možné omezit i zdroj pro konfiguraci. To by však nemělo bránit vytvoření nové funkce pro získání seznamu typu zdrojů s~omezením přístupu v~jmenném prostoru \cppc{KAuthorized}.
+Omezení přístupu ke zdrojům je nastavováno ve skupině \cppc{KDE Resource Restrictions} a~je umístěno do globálního konfiguračního souboru jako je \cppc{kdeglobals}. Omezením zdrojů lze docílit toho, že aplikace \uv{neuvidí} zdroje umístěné v~uživatelově domovské složce. Lze tak zamezit například tomu, aby si uživatel aplikace rozšiřoval. I~když je tato část Kiosku velmi podobná ostatním autorizačním funkcím v~\cppc{KAuthorized}, není do něj přímo začleněna. Důvodem je, že je úzce provázána s~třídou \cppc{KStandardDirs}, která tyto omezení zpracovává a~používá pro vytvoření seznamů složek se zdroji. Seznam těchto omezení je potřeba znát ještě před tím, než je zcela načtena konfigurace z~prostého důvodu -- je možné omezit i zdroj pro konfiguraci. Zde bude nutné poupravit způsob načítání konfigurace tak, aby bylo možné umístit omezení na zdroje dat i do Kiosk profilů.
 
 %ref: http://techbase.kde.org/KDE_System_Administration/Kiosk/Introduction#KDE_URL_Restrictions
-Omezení přístupu k~URL je nastavováno ve skupině \cppc{KDE URL Restrictions}. Tyto omezení jsou určeny pro zamítnutí přístupu k~některým adresám URL. Vstupní parametry jsou seznam šestic hodnot a~ověřovaná URL. Jednotlivé části je možné vynechat nebo místo nich použít proměnné.
+Omezení přístupu k~URL je nastavováno ve skupině \cppc{KDE URL Restrictions}. Tyto omezení jsou určeny pro zamítnutí přístupu k~některým adresám URL.
+% Vstupní parametry jsou seznam šestic hodnot a~ověřovaná URL. Jednotlivé části je možné vynechat nebo místo nich použít proměnné.
+% \begin{mylisting}
+% \caption{Syntaxe pro zápis omezení URL}
+% \label{url_syntax}
+% \begin{lstlisting}
+% rule_N=<action>,<referrer protocol>,<referrer host>,<referrer path>,
+%     <protocol>,<host>,<path>,<enabled>
+% \end{lstlisting}
+% \end{mylisting}
+% 
+% \begin{mylisting}
+% \caption{Ukázka zápisu omezení URL}
+% \label{url_exampl}
+% \begin{lstlisting}
+% [KDE URL Restrictions][\$i]
+% rule_count=6
+% rule_1=open,,,,file,,,false
+% rule_2=list,,,,file,,,false
+% rule_3=open,,,,file,,\$HOME,true
+% rule_4=list,,,,file,,\$HOME,true
+% rule_5=open,,,,file,,\$TMP,true
+% rule_6=list,,,,file,,\$TMP,true
+% \end{lstlisting}
+% \end{mylisting}
+% Ve výpisu \ref{url_exampl} jsou pravidla 1 a~2 jsou vypnuta, 3-6 zakazují otvírat a~vypisovat soubory
+% v~\$HOME a~\$TMP.
+Dalším typem omezení jsou tzv. \cppc{KDE Control Module Restrictions}, které se používají ke skrytí nebo zamezení otevření konfiguračních dialogů. KDE používá třídu \cppc{KCModule} jako základ pro všechny moduly použité v~aplikacích \uv{Nastavení Systému}, \cppc{kcmshell} a~případně v~jiných aplikacích, které používají tyto moduly pro úpravu svého nastavení. Omezení se vztahují k~názvům těchto modulů -- pokud budou moduly přejmenovány, přestanou omezení fungovat.
+
+\section{KAuth}
+KAuth je nové rozhraní pro autorizaci v~KDE. Je postaveno na již existujících rozhraních v~operačních systémech. V~OS na bázi Linuxu je to zpravidla PolicyKit, v~OSX pak framework Authorization Services. Podporu pro nová rozhraní je možné přidat připsáním nových zásuvných modulů.
+
+Pomocí KAuthu je možné autorizovat akce uživatele a také je provádět. Ace jsou prováděny za použití pomocného programu, který je spuštěn příslušným autorizačním rozhraním přítomným v systému. Takovýto program se nazývá KAuth pomocník (helper). Pomocník a~aplikace která ho využívá mohou do jisté míry komunikovat oběma směry a~je také možné sledovat průběh dlouho trvající akce uvnitř pomocníka. KAuth pomocník je rozšířením PolicyKit pomocníka o~tyto zjednodušené komunikační funkce. Hlavní výhodou je, že za použití pomocníka lze provádět privilegované akce bez nutnosti být přihlášen pod administrátorským účtem nebo tohoto účtu používat ke spuštění aplikace jako celku.
+
+Další službou KAuthu je registrace pomocníků a~akcí v~jeho jednotlivých zásuvných modulech. Uživatel KAuthu tedy specifikuje, jaké akce a~pomocníky chce použít a~při kompilaci budou tyto specifikace převedeny do formy srozumitelné pro jeho zásuvné moduly - např. PolicyKit nebo OSX Authorization Services.
+
+Díky tomu jakým způsobem je KAuth navržen nepodporuje provádění změn v~seznamu platných akcí po kompilaci. Také neumožňuje měnit autorizované uživatele a~skupiny pro akce -- to je zcela přenecháno použitému autorizačnímu systému. Dále pak platí omezení na názvy KAuth akcí, které mohou obsahovat jen malá písmena anglické abecedy, číslice a~tečku jako oddělovač.
+
+\subsection*{Formát specifikace akcí}
+Formát specifikace akcí je podobný jako formát konfiguračních souborů KConfig. Obsahuje skupiny a záznamy klíč-hodnota v těchto skupinách.
+Uvedený příklad .actions souboru \ref{fig:kauth_dotactions} byl použit k~vygenerování podobného souboru pro PolicyKit, který bude uveden dále: \ref{fig:pkit_policy}.
+
 \begin{mylisting}
-\caption{Syntaxe pro zápis omezení URL}
-\label{url_syntax}
+\caption{Ukázka KAuth .actions souboru}
+\label{fig:kauth_dotactions}
 \begin{lstlisting}
-rule_N=<action>,<referrer protocol>,<referrer host>,<referrer path>,
-    <protocol>,<host>,<path>,<enabled>
+[Domain]
+Name=Date and Time Control Module
+Icon=preferences-system-time
+
+[org.kde.kcontrol.kcmclock.save]
+Name=Save the date/time settings
+Description=System policies prevent you from saving the date/time settings.
+Policy=auth_admin
+Persistence=session
 \end{lstlisting}
 \end{mylisting}
 
+Soubor obsahuje skupinu Domain, která popisuje ke které aplikaci patří (V~tomto případě KControl modul pro nastavení data a~času) a~jakou má mít ikonu. Textové položky mohou být lokalizovány (zde vynecháno).
+
+Po skupině Domain následují definované akce. Platí, že název akce je také názvem skupiny v~souboru. Název akce se skládá ze dvou částí -- jmenného prostoru a~názvu akce v~něm. Zde je jmenným prostorem část \cppc{org.kde.kcontrol.kcmclock}. Název akce je \cppc{save}. Skupina dále obsahuje srozumitelný název (\cppc{Name}), popis (\cppc{Description}) a~výchozí chování při pokusu o~autorizaci.
+
+Položka Policy určuje průběh autorizace. V~případě, že je nastavena na hodnotu \cppc{yes}, je autorizace okamžitá. \cppc{no} naopak znamená, že akce nemůže být autorizována. Pokud je nastavena na \cppc{auth_self}, bude akce autorizována pokud se uživatel přihlásí pod svou vlastní identitou -- ověří se tak, že je to opravdu on. Konečně \cppc{auth_admin} znamená, že akce bude autorizována pokud se uživatel přihlásí jako administrátor.
+
+Poslední položkou skupiny je \cppc{Persistence}. Ta je nepovinná a~udává, na jak dlouho bude autorizace udělena. Možnostmi jsou \cppc{session}, kdy bude platit dokud se neodhlásí a~\cppc{always}, kdy nebude omezena.
+
+Specifikace akcí v~.actions souborech je také dále omezená tím, že všechny názvy akcí v jednom souboru musejí mít společný základ (jmenný prostor).
+
+\subsection*{Rozhraní KAuth}
+text, text, text, class diagram? odkaz na dokumentaci KAuth namespace.
+
+
+\section{PolicyKit}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=12cm]{obrazky/polkit-architecture-vector-cz.pdf}
+    \caption{Architektura systému PolicyKit, přeloženo z~\cite{manpolkit1}}
+    \label{fig:polkit_arch}
+\end{figure}
+
+V~této sekci jsem čerpal z~manuálu \cite{manpolkit_overview}, převážně pak z~jeho částí \cite{manpolkit1} a~\cite{manpklocalauth}.
+
+PolicyKit poskytuje autorizační rozhraní privilegovaným programům (mechanismy), které nabízejí služby neprivilegovaným programům (klienti) za použití IPC\footnote{Inter-process communication} mechanismu jako je D-Bus. Mechanismus považuje požadavky od klienta za nevěrohodné a pro každý požadavek musí mechanismus zjistit, jestli je autorizován nebo jestli má klientovi službu odepřít. Pomocí PolicyKit API může mechanismus tuto část přenechat důvěryhodné třetí straně: PolicyKit autoritě.\cite{manpolkit1}
+
+Vedle funkce jako autorita umožňuje PolicyKit uživatelům také získat dočasnou autorizaci pomocí autentizace jakožto administrátor nebo vlastník sezení do kterého klientský program patří. To je výhodné v situaci, kfy je nutné ověřit totožnost osoby používající klientský program.\cite{manpolkit1}
+
+Tedy podobně jako KAuth, PolicyKit umožňuje autorizovat akce uživatelů a~pomocí tzv. mechanismů tyto akce provádět. Jádrem PolicyKitu je několik základních komponent. První důležitou částí je démon polkitd, který funguje jako centrální prvek PolicyKitu. Implementuje část PolicyKit Authority, která se stará o~čtení databáze možných akcí a~povolení nebo zamítnutí požadovaných akcí.
+
+Další částí, implementovanou prostředími jako je Gnome nebo KDE je tzv. autentizační agent. To je program, který například uživateli zobrazí okno pro zadání hesla, pokud je potřeba ověřit jeho totožnost. Pro samotné ověření je možné použít pomocný program běžící se superuživatelskými právy a~používající k~ověření systém jako je PAM -- ten je dobře popsán v~článku \cite{rootpam}. To ale není striktně vyžadováno. Lze i jen zobrazit obyčejné okno s~dotazem typu Ano/Ne.
+
+Třetí komponentou je \uv{mechanismus} nebo \uv{pomocník}. zde se jedná o~službu pro vykonání privilegovaných akcí místo uživatele, který o~provedení akce žádá. Čtvrtou a~poslední komponentou je klient. To je program, který využívá služeb systému PolicyKit.
+% http://lists.freedesktop.org/archives/polkit-devel/2009-July/000153.html
+
+Průběh akcí v~systému pro volání funkce pomocníka může vypadat například takto:
+\begin{itemize}
+\item Uživatel se přihlásí, je nastartováno sezení KDE a~s~ním i autentizační agent
+\item Autentizační agent se registruje u~PolicyKit autority
+\item Uživatel spustí program, který využívá služeb PolicyKitu
+\item Program zavolá funkci pomocníka přes systém D-Bus
+\item DBUS démon nastartuje program pomocníka, pokud již neběží (pomocník musí být v~systému D-Bus registrován)
+\item Spuštěný pomocník se zeptá PolicyKit autority, jestli je volaná akce autorizována
+\item PolicyKit autorita zkontroluje, jestli je již tato akce autorizována (autorizace může mít například platnost po délku celého sezení). Pokud není zatím autorizována, zjistí jakým způsobem se má autorizace dosáhnout.
+\item Pokud je to nutné, zavolá PK autorita autentizačního agenta. Je možné ověřovat buď pouze identitu uživatele, kdy stačí, že se přihlásí pod vlastním účtem, nebo je možné vyžadovat přihlášení účtu se superuživatelskými právy.
+\item Uživatel se přihlásí. Ve většině distribucí Linuxu za pomoci mechanismu PAM.
+\item Agent oznámí autoritě jestli byla autentizace úspěšná.
+\item Autorita vrací výsledek autorizace a~uloží si ho do vyrovnávací paměti po dobu její platnosti.
+\item Pokud byl proces autorizace úspěšný, pomocník provede požadovanou akci.
+\item V~tomto bodě může pomocník oznámit programu výsledek akce.
+\end{itemize}
+
+Toto samozřejmě není jediný možný průběh.
+
+Nad PolicyKitem je postavena knihovna polkit-qt, která poskytuje v~zásadě stejné funkce jako PolicyKit a~lépe je integruje do prostředí knihoven Qt. Polkit-kde je nadstavbou nad knihovnou polkit-qt, která implementuje autentizační agent pro prostředí KDE.
+
+Zatím jediným způsobem uložení povolených akcí v~PolicyKitu je tzv. lokální autorita (PolicyKit Local Authority). Je to výchozí implementace PolicyKit Autority a~využívá lokálně uložených textových souborů s~příponou .policy a~.pkla. Nejdříve příklad \ref{fig:pkit_policy} .policy souboru. Tyto soubory používají formát XML a~vymezují seznam známých akcí. Instalují se do systému jako součást balíčků.
+
+Značka \cppc{vendor} určuje k~čemu tento soubor akcí patří. V~tomto případě je to KControl modul pro nastavení data a~času. Soubor má dále nastavenu ikonu a~samotný seznam akcí. Akce má popis (description), zprávu pro případ neúspěšné autorizace (message) a~výchozí nastavení autorizace. PolicyKit rozlišuje mezi tzv. aktivním a~pasivním sezením. Aktivní je například normálně přihlášený uživatel s~vlastním X serverem. Pasivní může být sezení spuštěné dodatečně z~login terminálu (su - username). Normálně může být aktivní pouze jedno sezení (to s~kterým uživatel zrovna přímo pracuje). Dalším povoleným typem atributu je tzv. anotace. Anotace umožňuje přidat k akci další atributy. Soubor povoluje měnit nastavení času pouze uživateli s~aktivním sezením, který se prokáže jako superuživatel.
+
 \begin{mylisting}
-\caption{Ukázka zápisu omezení URL}
-\label{url_exampl}
-\begin{lstlisting}
-[KDE URL Restrictions][\$i]
-rule_count=6
-rule_1=open,,,,file,,,false
-rule_2=list,,,,file,,,false
-rule_3=open,,,,file,,\$HOME,true
-rule_4=list,,,,file,,\$HOME,true
-rule_5=open,,,,file,,\$TMP,true
-rule_6=list,,,,file,,\$TMP,true
+\caption{Ukázka souboru s~definicí akce (.policy soubor), soubor byl generován KAuthem ze souboru \ref{fig:kauth_dotactions}}
+\label{fig:pkit_policy}
+\begin{lstlisting}[language=XML]
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE policyconfig PUBLIC
+"-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+"http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+<policyconfig>
+<vendor>Date and Time Control Module</vendor>
+<icon_name>preferences-system-time</icon_name>
+   <action id="org.kde.kcontrol.kcmclock.save" >
+      <description>Save the date/time settings</description>
+      <message>System policies prevent you from saving the date/time settings.</message>
+      <defaults>
+         <allow_inactive>no</allow_inactive>
+         <allow_active>auth_admin</allow_active>
+      </defaults>
+   </action>
+</policyconfig>
 \end{lstlisting}
 \end{mylisting}
-Ve výpisu \ref{url_exampl} jsou pravidla 1 a~2 jsou vypnuta, 3-6 zakazují otvírat a~vypisovat soubory
-v~\$HOME a~\$TMP.
 
-Po seznámení se s~funkcí systému KAuth by z~tohoto příkladu mělo být zřejmé, že neumí takováto data rozumně uložit. Omezeními na URL se tedy nebudu dále zabývat.
+Takto vymezené akce je dále možné pozměnit v~souborech .pkla. Efektivní seznam povolených akcí se získá sloučením záznamů z těchto souborů. Je tedy možné mít například jeden soubor s~nastavením instalovaný z~distribučního balíčku a~druhý s~vyšší prioritou vytvořený administrátorem.
 
-KDE používá třídu \cppc{KCModule} jako základ pro všechny moduly použité v~aplikacích \uv{Nastavení Systému}, \cppc{kcmshell} a~případně v~jiných aplikacích, které používají KControl moduly pro úpravu svého nastavení. Za pomoci omezení přístupu ke KControl modulům je možné skrýt tyto moduly ve zmíněných aplikacích, aby je uživatel nemohl otevřít. To stejné funguje i pro služby KDE (KService). Omezení se vztahují k~názvům těchto modulů -- pokud budou moduly přejmenovány, přestanou omezení fungovat. V~systému KConfig jsou uvedeny ve skupině \cppc{KDE Control Module Restrictions}.
+Local Authority pro ně zavádí poměrně propracovanou strukturu složek ve dvou umístěních (/var/lib/polkit-1/localauthority a /etc/polkit-1/localauthority). Pořadí načítání je určeno lexikografickým řazením složek a~souborů v~nich. Pokud je stejně pojmenovaný soubor v~obou umístěních, nejdříve se zpracuje ten ve /var/. Detaily a příklad viz. \cite{manpklocalauth}.
 
-\subsection*{KioskTool}
+\begin{mylisting}
+\caption{Ukázka souboru s~nastavením PolicyKit Local Authority, Přeloženo z~\cite{manpklocalauth}}
+\label{fig:pkit_pkla}
+\begin{lstlisting}
+[Povolene akce pro zamestnance]
+Identity=unix-group:zamestnanci
+Action=com.example.uzasnyprodukt.*
+ResultAny=no
+ResultInactive=no
+ResultActive=yes
+
+[Zakazy pro par cernych ovci]
+Identity=unix-user:petr;unix-user:pavel
+Action=com.example.uzasnyprodukt.*
+ResultAny=no
+ResultInactive=no
+ResultActive=auth_admin
+\end{lstlisting}
+\end{mylisting}
+
+Na výpisu \ref{fig:pkit_pkla} je ukázka .pkla souboru. Uživatelé petr a~pavel jsou členy skupiny zamestnanci.
+
+Záznamy se zpracovávají tak jak jdou za sebou a~platí, že zpracování pokračuje i po úspěšném porovnání uživatelského jména/skupiny s~těmi od žadatele -- procházi se vždy všechny záznamy. Jako příklad si vezmu uživatele petr, který požádá o~autorizaci akce \cppc{com.example.uzasnyprodukt.uzasnaakce}. Zaměstnanci mají tuto akci obecně povolenu bez nutnosti se přihlašovat v~první skupině souboru. Zpracování však pokračuje a~uživatel petr se bude muset pro úspěšnou autorizaci akce přihlásit jako administrátor.
+
+Rozdíl mezi položkami \cppc{ResultAny}, \cppc{ResultInactive} a~\cppc{ResultActive} se nemusí zdát zjevný. \cppc{ResultActive} a~\cppc{ResultInactive} jsou výsledky akce pro aktivní a~neaktivní sezení -- podobně jako značka \cppc{allow_active} a~\cppc{allow_inactive} v~.policy souborech. \cppc{ResultAny} pak určuje výsledek pro oba typy sezení. Alespoň jedna z~těchto položek musí být přítomna. Hodnota položky udává jakým způsobem bude uživatel žádající o~autorizaci akce autentizován.
+
+\chapter{Integrace KAuth do KAuthorized}
+\section{Analýza problému}
+První praktickou částí projektu je zjistit jak nejlépe integrovat systém KAuth do rozhraní KAuthorized. Díky celkové rozdílnosti KAuthu a Kiosku bude nejspíše potřeba určitých kompromisů.
+
+Na jedné straně Kiosk, podporující profily přiřazené uživatelům a skupinám a změnu těchto profilů (stačí být administrátor a~upravovat profily standardními nástroji). Na druhé straně KAuth, primárně určený k odstranění nutnosti spouštět programy pro systémovou konfiguraci s grafickým uživatelským rozhraním jako administrátor.
+
+\subsection*{Varianta s přímou integrací}
+První a~nejjednodušší varianta je vytvořit statický .actions soubor (poté přeložený KAuthem) v~kombinaci s~integrací KAuth přímo do rozhraní KAuthorized. KAuth by tak konvertoval tento statický soubor do formy srozumitelné pro PolicyKit během sestavení KDE-Libs.
+
+Problémem je zde to, že neexistuje definitivní seznam možných restrikcí akcí a~zdrojů v~Kiosk profilech. Toto by šlo řešit tak, že každý program KDE by tyto své akce a~zdroje specifikoval v~.actions souboru k~tomu určeném a~zahrnul by jeho překlad do svého sestavení. To ovšem vylučuje jakoukoliv možnost stejné úrovně podpory pro aplikace, které by takto akce nespecifikovaly.
+
+Druhým problémem je neexistence možnosti nastavit autorizované akce pro uživatele a~skupiny pomocí KAuthu. Nejen že nejdou nastavit, KAuth navíc nemá ani žádné ponětí o~něčem, co by alespoň vzdáleně připomínalo způsob jakým se aplikují Kiosk profily. V~případě použití PolicyKitu tyto vcelku základní funkce nemá ve formě knihovny žádná vrstva - PolicyKit, polkit-qt, polkit-kde ani KAuth. Musí se přímo přistupovat ke konfiguračním souborům PolicyKitu.
+
+Tato varianta vyžaduje implementaci nástroje pro překlad Kiosk profilů na nastavení KAuth/PolicyKit. Zde je nutno přihlédout k tomu, že názvy akcí v HAuthu jsou daleko více omezené než ty v Kiosku. Všechny akce v~jednom .actions souboru musejí mít společný jmenný prostor a~v~PolicyKitu soubor musí být podle tohoto jmenného prostoru pojmenován. Navíc mohou názvy obsahovat pouze malá písmena latinky, číslice a~tečku jako oddělovač. Názvy akcí a~zdrojů v~Kiosku tato omezení samozřejmě nemají a~často využívají jiné znaky jako je například pomlčka, podtržítko nebo lomítko. Tyto znaky je potřeba buď odstranit nebo nahradit. Vzniká tak reálná možnost kolize názvů.
+
+\subsection*{Varianta s KConfig objektem v KAuth pomocníkovi}
+Druhá možná varianta je jednoduše se vzdát mapování akcí mezi Kioskem a~KAuthem jedna ku jedné. Mělo by být možné umístit do KAuth pomocníka obsahujícího instanci KConfigu, která načte požadované Kiosk profily a~bude přes KAuth/D-Bus umožňovat dotazování se na jednotlivé hodnoty v~nich. Bylo by také možné tyto hodnoty měnit. V~podstatě by to byl stále pouze KConfig, jen obalen v~pomocníkovi. I toto řešení by však mělo problémy.
+
+Za prvé -- nezíská se tím vůbec žádná výhoda z~pohledu bezpečnosti. Kiosk profily musejí stále zůstat čitelné pro všechny uživatele, jinak by se při spuštění programů nemohly načíst a~části které nebudou takto integrovány v~pomocníkovi (vše s~výjimkou omezení akcí a~zdrojů) by tím byly zcela neefektivní. Odpadá tak výhoda KAuthu, kde jak seznam omezení, tak jaká omezení pro koho platí může být před uživateli skryt. Při použití PolicyKit Local Authority je možné nastavit všechny soubory čitelné jenom superuživatelem (dokonce je to výchozí stav).
+
+Za druhé -- KAuth pomocníci mají omezenou životnost. Pokud nejsou využíváni po dobu deseti vteřin, jsou ukončeni (viz. zdrojový kód KAuth ADD REF!!). Znamená to znovu načíst celý KConfig objekt. I~když je toto načítání vysoce optimalizováno, stále je vcelku zbytečné načítat celou konfiguraci dvakrát. Jednou v~programu, který by volal KAuthorized a~podruhé v~KAuth pomocníkovi. Sdílet zde jeden konfigurační objekt by bylo zbytečně komplikované.
+
+Jedna z~vlastností KAuthu, kterou by se také nedalo využít jsou srozumitelné názvy akcí v~systému. Místo \cppc{org.kde.kiosk.action.help} a~mnoha dalších by byly v~systému jen akce pomocníka. V~tom případě se ovšem nedá mluvit o~integraci KAuthu a~KAuthorized.
+
+V této variantě by nebylo potřeba implementovat nástroj pro překlad Kiosk profilů na nastavení KAuth/PolicyKit.
+
+\subsection*{Další požadavky na řešení}
+Použití KAuthu by nemělo být povinné a~mělo by být zachováno chování rozhraní \cppc{KAuthorized} pokud možno tak, aby se z~pohledu aplikací nic nezměnilo. Zde je problém to, že administrátor může, ale také nemusí nastavit v~systému \cppc{KConfig} kteroukoliv položku jako nezměnitelnou. Pokud bude kontrola oprávnění pomocí KAuthu před kontrolou pomocí KConfigu, je nutné zaručit, že omezení známá v~KAuthu mohou být brána jako změnitelná, tak aby mohly být dále modifikována pomocí nastavení v~KConfigu. KAuth ani PolicyKit toto neumožňují. Musí se také počítat s~tím, že KAuth nemusí být přítomen v systému nebo že konvertor zatím nikdy nebyl spuštěn a~v~těchto případech použít normální nastavení Kiosk profilu přes \cppc{KConfig}.
+
+\section{Návrh řešení}\label{mozres}
+Rozhodl jsem se implementovat první variantu. To znamená přímo integrovat KAuth do rozhraní KAuthorized. Samotná integrace bude vyžadovat mnoho malých změn v KDE-Libs a implementaci nástroje pro konverzi Kiosk profilů na nastavení lokálního systému pro autorizaci. Zde se budu držet PolicyKitu a operačního systému Linux.
+
+Konvertor bude fungovat jako KAuth pomocník a bude vytvořen samostatný program spustitelný uživatelem z~příkazové řádky, který bude tohoto pomocníka volat. Konverze z~Kiosk profilů bude jednosměrná, bude používat polkit-qt pro získání seznamu podporovaných omezení a~bude produkovat soubory .pkla, použitelné v~PolicyKit Local Authority. Konvertor by mělo být možné, až bude stabilní, integrovat do KAuthu nebo balíku policykit-kde. Konvertor nebude vyžadovat od uživatele žádný vstup.
+
+V~konvertoru je nutné zohlednit to, že postup aplikace profilů v~Kiosku je jiný než postup ověření autorizace v~PolicyKitu. Musí se replikovat Kiosk a~jeho zvláštnosti, aby se nezměnilo chování KAuthorized. Problém s omezeními názvů akcí v KAuth v porovnání s Kioskem je nutné řešit buď záměnou znaků v názvech akcí z Kiosku, nebo překódování celých názvů do přijatelné a v KAuthu uložitelné podoby.
+
+Integrace KAuth do KAuthorized je sice otázka několika volání funkcí KAuth, ale autorizační funkce KAuthu na rozdíl od systémů na kterých staví nevrací chybové kódy v~případě, že akce neexistuje. Toto bude potřeba do KAuthu doplnit.
+
+Omezení na zdroje \cppc{KDE Resource Restrictions} si vyžádají změny ve třídě \cppc{KStandardDirs} -- bude potřeba doplnit schopnost načítat omezení zdrojů z Kiosk profilů a umístit do jmenného prostoru \cppc{KAuthorized} funkci, která bude vracet seznam typů zdrojů s~nastaveným omezením.
+
+\section{Implementace}
+\subsection*{Změna v KAuth}
+Implementace spočívá v několika přesně cílených změnách v kódu KDE-Libs. V prvé řadě byla doplněna schopnost KAuthu vracet vedle informace o~úspěšnosti autorizace také zvláštní hodnotu pro případ, že akce není použitému systémem pro autorizaci známa. Ve výchozím stavu vypadá funkce pro získání autorizace takto: \ref{kauth-oldmethod}. Hodnota \cppc{Unknown} je vrácena v~případě, kdy dojde k~chybě během autorizace. Důvod chyby lze zjistit bližším dotazováním autorizačního rozhraní. Úprava metody pak vypadá takto: \ref{kauth-newmethod}.
+
+\subsection*{Přesun vyhodnocení omezení na zdroje do KAuthorized}
+Zjišťování seznamu omezení na zdroje je umístěno v~metodě \cppc{addCustomized} třídy \cppc{KStandardDirs} a~tento seznam je vytvářen před tím, než se načtou Kiosk profily. Tato metoda přidává profily k~cestám pro načítání konfigurace a~třída \cppc{KComponentData}, která tuto metodu volá následně způsobí znovunačtení konfigurace. Z~takovéto načtené konfigurace ale již nejsou vytaženy seznamy omezení zdrojů.
+
+Rozhodl jsem zjišťování seznamu omezených zdrojů přesunout do rozhraní \cppc{KAuthorized}, aby byly změny nutné pro integraci KAuthu pokud možno pouze na jednom místě.
+
+Dále jsem se rozhodl, že oddělím zpracování tohoto seznamu od metody \cppc{addCustomized()}. Dá se tak spustit z~třídy \cppc{KComponentData} poté, co \cppc{KStandardDirs} přidá Kiosk profily mezi konfiguraci. Tím se docílí toho, že je možné uložit omezení zdrojů stejným způsobem jako omezení na akce.
+
+Implementoval jsem tedy funkci \cppc{restrictResourceTypes} pro získání seznamu Kioskem neomezených zdrojů ve formě objektu \cppc{QStringList} a~umístil ji do rozhraní KAuthorized. Dále jsem přesunul vyhodnocení těchto omezení do nové metody \linebreak\cppc{evaluateRestrictedResources()} v~\cppc{KStandarDirs}, která je volána po znovu-načtení konfigurace po přidání profilů. Bylo nutné také změnit konstruktor privátního objektu v~KAuthorized, aby neblokoval zpracování profilů. Původně nebyl navržen na to, aby byl použit tak brzo během spouštění programů.
+
+\subsection*{Specifikace akcí a~zdrojů}
+Ke specifikaci akcí v~systému KAuth jsou využity statické .actions soubory. Jako základní jmenný prostor jsem se rozhodl použít \cppc{org.kde.kiosk}. Pro akce jsem se rozhodl pro \cppc{org.kde.kiosk.action} a~pro zdroje \cppc{org.kde.kiosk.resource}.
+
+Názvy akcí a~zdrojů nemohou obsahovat jiné znaky než malá písmena a~číslice. Je tedy nutné přeložit jejich skutečné názvy do formy, kterou je KAuth schopen použít. Z~akce \cppc{action/help} se tak stane \cppc{actionhelp}, společně se jmenným prostorem pak \linebreak\cppc{org.kde.kiosk.action.actionhelp}. Kdyby však exitovala jiná akce s~názvem \cppc{action\_help}, došlo by ke kolizi.
+
+\subsection*{Implementace konvertoru}
+Konvertor se skládá ze dvou částí. Hlavní částí je pomocník, postavený na knihovně KAuth. Ten implementuje veškeré funkce celku (ve zdrojovém kódu je to kdelibs/kdecore/auth/kioskpklahelper.cpp). Druhou částí je jednoduchý terminálový program, který není až na spuštění pomocníka přes KAuth příliš zajímavý (ve zdrojových kódech je to kioskpklaconvert.cpp ve stejné složce jako pomocník).
+
+Konvertor funguje tak, že nejdříve získá ze souboru /etc/kde4rc nastavení Kiosku, pomocí něj vyhledá Kiosk profily, komu a~jakým skupinám jsou přiřazeny a~jaké je pořadí skupin při zpracování skupinových profilů. Je také získán seznam akcí známých v~PolicyKit Local Authority. Tento seznam se filtruje do dvou skupin podle jmenných prostorů použitých pro omezení na akce a~zdroje. Toto jsou základní vstupní parametry programu. Uživatel nemá možnost do procesu přímo zasáhnout -- program nemá žádné uživatelské vstupy.
+
+Další částí je vytvoření .pkla souboru ze skupinových Kiosk profilů. V~pořadí zjištěném z~nastavení Kiosku se z~nich pomocí KConfigu načtou soubory globálního nastavení kdeglobals. Z~těch jsou dále vytaženy skupiny \cppc{KDE Action Restrictions} a~\cppc{KDE Resource Retrictions}. Klíče jejich položek jsou zpracovány stejně jako specifikace v~.actions souborech. Upravené klíče společně s~jejich hodnotami a~přiřazenou skupinou pak tvoří záznamy ukládané do .pkla souboru pro skupiny. Soubor je uložen tak, aby byl zpracován dříve než soubory pro jednotlivé uživatele (jsou načítány v~lexikografické pořadí podle názvu).
+
+Dalším bodem je zpracování profilů přiřazených uživatelům. Postup je z~části podobný jako u~skupinových profilů, ale platí, že na uživatele s~nastaveným uživatelským Kiosk profilem se skupinové profily nevztahují. Znamená to, že každý uživatel musí mít specifikovány všechny akce ve výchozím stavu (povoleno). K~tomu se dále přidávají omezení z~uživatelského profilu. Ve výsledku se tak vyruší vliv skupinových profilů -- pro ilustraci: \ref{fig:konv_profily}. Pro každého uživatele je zvlášť vytvořen .pkla soubor.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8.5cm]{obrazky/profily.pdf}
+    \caption{Aplikace Kiosk profilů}
+    \label{fig:konv_profily}
+\end{figure}
+
+Problémem řešení je zejména nemožnost reprezentace vlastnosti nezměnitelnosti z~KConfigu. Omezení jsou jednou specifikována jako hodnota ano/ne v~nastavení PolicyKit Local Authority a~jsou tak z~pohledu KConfigu nezměnitelná. Jedinou možností jak docílit toho, aby byla změnitelná je nezanést ji do PolicyKitu. Pak ale není možné s~nimi v~něm pracovat. Když je jednou akce jako \cppc{action/help} pro ukázání menu s~nápovědou zanesena do KAuthu, ztrácí nad ní uživatel kontrolu a~nemůže tak menu schovat. Toto je bohužel při způsobu jakým je KAuth navržen nevyhnutelné.
+
+% svn://svn.kde.org/home/kde/trunk/extragear/base/polkit-kde-1/
+\subsection*{Integrace KAuth do KAuthorized}
+KAuth nabízí několik možností, jak autorizovat akci. V~zásadě se jedná o~různé metody třídy \cppc{KAuth::Action}, mající mírně odlišný význam. Prvním metodou je \cppc{execute()} -- tato metoda je uvedena v~příkladu \cite{Kauth-usage} a~je určena pro jednorázové blokující provedení akce. Pokud je to potřeba, uživatel je požádán o~autentizaci. Metoda má podle \cite{Kauth-usage} fungovat i bez přítomnosti pomocníka. \cppc{execute()} má také asynchronní verzi.
+
+Další metodou je \cppc{authorize()}. Tato metoda je určena pro získání autorizace pro akce před tím, než by byla akce provedena. Má být používána ostatními metodami třídy \cppc{KAuth::Action}.  Metoda podobně jako \cppc{execute()} může od uživatele vyžadovat autentizaci. Třetí metodou je \cppc{status()} -- tato metoda je podobná \cppc{execute()}, ale v~případech, kdy by byla vyžadována autentizace pouze o~této skutečnosti informuje.
+
+Takovýto význam by alespoň tyto metody měly mít. Skutečnost je ale odlišná. Třída \cppc{KAuth::Action} používá pro autentizaci a~použití pomocníků statické zásuvné moduly -- to znamená, že jsou určeny při sestavení. Tyto moduly implementují lokálně dostupné autentizační mechanismy. Zde vzniká problém kvality těchto mechanismů a~jejich implementace v~KAuthu. Použitý PolicyKit vůbec neimplementuje metodu \cppc{authorize()}. Ta namísto výsledku vždy vrací hodnotu \cppc{Action::Authorized}. Její místo zastává metoda \cppc{status()}, která obaluje metodu \cppc{checkAuthorizationSync()} z~knihoven polkit-qt-1. Toto je synchronní metoda pro získání autorizace.
+
+Ze všech uvedených metod je tedy nejvhodnější \cppc{status()}. Po konverzi z~Kiosk profilů totiž nevznikají akce pro jejichž autorizaci by bylo nutné se autentizovat.
+
+Rozhraní KAuthorized jsem tedy doplnil o překlad původních názvů akcí z Kiosku do formy přijatelné KAuthem a volání metody status(). Pokud KAuth nezná autorizovanou akci nebo typ dat, je místo něj použit KConfig.
+
+\section{Testování}
+Téměř okamžitě po implementaci jsem narazil na první problém. Program, který používá upravené rozhraní KAuthorized totiž po čase přestane reagovat, společně s PolicyKit démonem. Při integraci KAuthu do rozhraní KAuthorized, které je využíváno téměř každým programem v~KDE je objem dotazů o~několik řádů vyšší než když je KAuth normálně používán a chyba tak vyšla na povrch. Sezení KDE přestane reagovat již během spuštění. Chyba v~podstatě umožňuje přihlášenému uživateli provést DoS\footnote{Denial of Service} útok na PolicyKit, protože PolicyKit démon běží jako systémová služba, společná pro všechny uživatele.
+
+Pro zjištění kde je chyba jsem vytvořil jednoduchý test kauthDoS. Ten v~nekonečném cyklu volá \cppc{KAuth::Action::status()} a~v~pravidelných intervalech vypisuje hlášení. Když program přestane vypisovat, znamená to, že došlo k~chybě. Démon polkitd (autorita PolicyKitu) a~program kauthDoS byly spuštěny v~debuggeru gdb a~byly získány \uv{backtrace} z~obou programů (výpisy \ref{btrac1} a~\ref{btrac2}). Podle těch to vypadá, že problém vzniká během komunikace jednotlivých částí PolicyKitu. Chybu jsem ohlásil jeho autorovi (David Zeuthen) v mailing listu !!!!!REF!!!!! a~nedočkal se odpověďi, i když je tento mailing list uveden jako místo kam se mají chyby PolicyKitu hlásit.
+
+Provedl jsem tedy druhý pokus o nahlášení chyby a přitom implementoval test podobný KAuthDoS, ale závisející pouze na PolicyKitu.
+Chyba byla hlášena do bugtrackeru PolicyKitu !!!!REF!!!!, ale setkala se s nepochopením ze strany autora.
+
+Při hledání chyby jsem narazil na druhý problém v PolicyKitu, kdy každý požadavek na autorizaci způsoboval zahození celé databáze autorizací a jeji opětovné načtení z konfiguračních souborů. Tato chyba byla opravena: !!!!!REF!!!!!
+
+\subsection{Testování implementace}
+TODO - na testech se pracuje
+V zasade se bude jednat o overovani, ze Kiosk s puvodnimi daty a KAuth s konvertovanymi se chovaji stejne.
+
+
+\section{Návrh dalšího postupu}
+Výše byly popsány vybrané části rozhraní KAuthorized, KAuth a~PolicyKit. Nyní následuje návrh řešení v~nich nalezených nedostatků a~také návrh na jejich rozšíření. V~prvé řadě je potřeba opravit zmíněnou bezpečnostní chybu v~PolicyKitu.
+
+Dále je potřeba rozšířit KAuth:
+\begin{enumerate}
+\item Je potřeba, aby uměl hlásit, pokud autorizovaná akce není známa -- a~to pro všechny podporované autorizační systémy. Toto jsem pro účely práce udělal a~otestoval pro metodu \cppc{status()} a~PolicyKit1. Ideální by bylo integrovat vyhledání akce do konstruktoru třídy \cppc{KAuth::Action} a~vracet pak výsledek pomocí volání její metody \cppc{isValid()}.
+\item KAuth musí umět nejen ověřovat a~spouštět akce, ale také měnit oprávnění k~těmto akcím pro uživatele a~skupiny. Zde je zatím k~dispozici pouze KControl modul pro PolicyKit v~balíku policykit-kde-1 a~sním spojený pomocník na bázi polkit-qt-1, ale ten je zaměřen pouze na uživatele a~není nijak do KAuthu integrován.
+\item Mělo by také být možné přidávat nové akce. To znamená, že by se nemusely do systému instalovat statické soubory s~definicemi akcí.
+\end{enumerate}
+
+Body 2 a~3 by bylo možné realizovat jakožto pomocníky a~přidat do systému KAuth rozhraní, které by umožnilo s~nimi pracovat.
+
+Zcela korektní integraci KAuthu do KAuthorized považuji kvůli omezením ze strany KAuthu za příliš problematickou. Oba systémy jsou velmi rozdílné v~některých kritických bodech. Na pouhé dotazování se na to, jestli je uživateli dovoleno provádět nějakou akci není potřeba KAuth. Stačí jakákoliv databáze schopná uložit údaje ve formě klíč-hodnota. To však nebrání využití KAuthu tam, kde použití pomocníků poskytuje větší bezpečnost. Izolují se části programu vyžadující administrátorská práva od zbytku kódu. Z~pohledu administrátora je možnost udělit konkrétním uživatelům a~skupinám oprávnění tyto pomocníky spouštět snad největší výhodou řešení.
+
+Dalším možným rozšířením by bylo nějakým způsobem spojit KAuth se systémy jako je SELinux\footnote{Security Enhanced Linux}. Zde by byla výhoda v~tom, že akce, které by jinak byly uživateli umožněny jde omezit na úrovni operačního systému. Využitelnost KAuthu by se tak rozšířila například na omezení spouštění programů a~použití knihoven (příkladem budiž KControl moduly) a~skutečné omezení zdrojů dat. Například pokud by měl uživatel zakázáno používat vlastní pozadí na plochu, bylo by zamezeno programu plasma-desktop načítat jiné obrázky, než ty instalované do systému administrátorem - a~to bez možnosti to obejít. Omezení na zdroje tak jak je v~KDE4 je v~porovnání s~takovým řešením v~podstatě bezzubé. Potom by mělo smysl odstranit některé typy omezení ze systému KConfig, a~přímo je integrovat do KAuth.
+
+Co se týče kombinace Kiosk, KAuthorized a~KConfig, je rozhodně co dohánět. Bylo by dobré tyto části KDE pročistit a~zdokumentovat. Zdvojení funkcí \cppc{KAuthorized::authorize()} a~\cppc{KAuthorized::authorizeKAction()} je poněkud chaotické a~vede ke zmatkům, kdy je jeden název akce používán s~funkcemi náhodně. \cppc{KAuthorized::authorizeKAction()} by měla přijímat jako parametr pouze reference typu KAction. Kiosk jako celek je bohužel jednou z méně udržovaných částí KDE-Libs a určitá část nastavitelných omezení je zcela neefektivní.
+
+\chapter{Nástroj KioskTool}
+Při psaní této kapitoly jsem hojně využíval knih \cite{StarchQt4} a~\cite{Ezust}. Obzvláště \cite{Ezust} je vhodným zdrojem informací, protože je volně dostupná.
+
+\section{KioskTool v KDE 3}
 Aplikace KioskTool umožňovala v~KDE3 spravovat některé specifické části Kiosk profilů pomocí grafického rozhraní. Nejprve popíši její funkčnost ve verzi pro KDE3 za pomocí obrázků, protože tak to bude nejlepší.
 
 \begin{figure}[h]
@@ -233,353 +544,8 @@ Na obrázku \ref{fig:kt3_nast_komp} je vidět jak takový modul vypadá. Uživat
 
 I~při krátké době nutné na seznámení s~nástrojem (KioskTool 1.0 v~Kubuntu 9.04) jsem narazil na fatální chyby, kdy se bez zjevného důvodu zhroutil. Nebude tedy možné se spolehnout na korektnost kódu.
 
-\section{PolicyKit}
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=12cm]{obrazky/polkit-architecture-vector-cz.pdf}
-    \caption{Architektura systému PolicyKit, přeloženo z~\cite{manpolkit1}}
-    \label{fig:polkit_arch}
-\end{figure}
-
-V~této sekci jsem čerpal z~manuálu \cite{manpolkit_overview}, převážně pak z~jeho částí \cite{manpolkit1} a~\cite{manpklocalauth}.
-
-PolicyKit je systém umožňující autentizovat uživatele, autorizovat akce těchto uživatelů a~pomocí tzv. mechanismů tyto akce také provádět. Je to systém velmi modulární a~přenechává implementaci mnoha těchto funkcí zásuvným modulům a~programům které jej využívají. Pro každý typ rozšíření PolicyKitu existuje knihovna. Jednotlivé komponenty pak spolu komunikují pomocí IPC mechanismu D-Bus (ať už přímo nebo prostřednictvím knihoven).
-
-Mezi nejzákladnější části tohoto systému patří démon polkitd, implementující část PolicyKit Authority. Ta se stará o~uložení databáze možných akcí a~povolení a~slouží jako centrální prvek celého systému.
-
-Další částí, implementovanou prostředími jako je Gnome nebo KDE je tzv. autentizační agent. To je program, který například uživateli zobrazí okno pro zadání hesla, pokud je potřeba ověřit jeho totožnost. Pro samotné ověření je možné použít pomocný program běžící se superuživatelskými právy a~používající k~ověření systém jako je PAM -- ten je dobře popsán v~článku \cite{rootpam}. To ale není striktně vyžadováno. Lze i jen zobrazit obyčejné okno s~dotazem typu Ano/Ne.
-
-Třetí komponentou je \uv{mechanismus} nebo \uv{pomocník}. zde se jedná o~službu pro vykonání privilegovaných akcí místo uživatele, který o~provedení akce žádá. Čtvrtou a~poslední komponentou je klient. To je program, který využívá služeb systému PolicyKit.
-% http://lists.freedesktop.org/archives/polkit-devel/2009-July/000153.html
-
-Průběh akcí v~systému pro volání funkce pomocníka může vypadat například takto:
-\begin{itemize}
-\item Uživatel se přihlásí, je nastartováno sezení KDE a~s~ním i autentizační agent
-\item Autentizační agent se registruje u~PolicyKit autority
-\item Uživatel spustí program, který využívá služeb PolicyKitu
-\item Program zavolá funkci pomocníka přes systém D-Bus
-\item DBUS démon nastartuje program pomocníka, pokud již neběží (pomocník musí být v~systému D-Bus registrován)
-\item Spuštěný pomocník se zeptá PolicyKit autority, jestli je volaná akce autorizována
-\item PolicyKit autorita zkontroluje, jestli je již tato akce autorizována (autorizace může mít například platnost po dálku celého sezení). Pokud není zatím autorizována, zjistí jakým způsobem se má autorizace dosáhnout.
-\item Pokud je to nutné, zavolá PK autorita autentizačního agenta. Zobrazí se například okno, kde má uživatel zadat své login údaje. Je možné ověřovat buď pouze identitu uživatele, kdy stačí, že se přihlásí pod vlastním účtem, nebo je možné vyžadovat přihlášení účtu se superuživatelskými právy.
-\item Uživatel se přihlásí. Záleží na tom jakým způsobem to agent dělá. Výchozí je PolicyKit mechanismus který obaluje PAM.
-\item Agent oznámí autoritě jestli byla autentizace úspěšná.
-\item Autorita vrací výsledek autorizace a~uloží si ho do vyrovnávací paměti po dobu její platnosti.
-\item Pokud byl proces autorizace úspěšný, pomocník provede požadovanou akci.
-\item V~tomto bodě může pomocník oznámit programu výsledek akce.
-\end{itemize}
-
-Toto samozřejmě není jediný možný průběh. Vše záleží na implementaci jednotlivých komponent. Jak jsem již uvedl, PolicyKit je velmi modulární systém a~většinu jeho částí lze nahradit nebo rozšířit.
-
-Nad PolicyKitem je postavena knihovna polkit-qt. Poskytuje v~zásadě stejné funkce jako PolicyKit a~lépe je integruje do prostředí knihoven Qt.
-
-Polkit-kde je nadstavbou nad knihovnou polkit-qt, která implementuje autentizační agent pro prostředí KDE a~KControl modul pro úpravu akcí povolených pro uživatele a~skupiny.
-
-Zatím jediným způsobem uložení povolených akcí v~PolicyKitu je tzv. lokální autorita. Je to výchozí implementace PolicyKit Autority a~využívá lokálně uložených textových souborů s~příponou .policy a~.pkla. Nejdříve příklad \ref{fig:pkit_policy} .policy souboru. Tyto soubory používají formát XML a~vymezují seznam známých akcí. Instalují se do systému jako součást balíčků.
-
-Značka \cppc{vendor} určuje k~čemu tento soubor akcí patří. V~tomto případě je to KControl modul pro nastavení data a~času. Soubor má dále nastavenu ikonu a~samotný seznam akcí. Akce má popis (description), zprávu pro případ neúspěšné autorizace (message) a~výchozí nastavení autorizace. PolicyKit rozlišuje mezi tzv. aktivním a~pasivním sezením. Aktivní je například normálně přihlášený uživatel s~vlastním X serverem. Pasivní může být sezení spuštěné dodatečně z~login terminálu (su - username). Normálně může být aktivní pouze jedno sezení (to s~kterým uživatel zrovna přímo pracuje). Soubor povoluje měnit nastavení času pouze uživateli s~aktivním sezením, který se prokáže jako superuživatel.
-
-\begin{mylisting}
-\caption{Ukázka souboru s~definicí akce (.policy soubor)}
-\label{fig:pkit_policy}
-\begin{lstlisting}[language=XML]
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE policyconfig PUBLIC
-"-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
-"http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
-<policyconfig>
-<vendor>Date and Time Control Module</vendor>
-<icon_name>preferences-system-time</icon_name>
-   <action id="org.kde.kcontrol.kcmclock.save" >
-      <description>Save the date/time settings</description>
-      <message>System policies prevent you from saving the date/time settings.</message>
-      <defaults>
-         <allow_inactive>no</allow_inactive>
-         <allow_active>auth_admin</allow_active>
-      </defaults>
-   </action>
-</policyconfig>
-\end{lstlisting}
-\end{mylisting}
-
-Takto hrubě vymezená práva a~omezení je dále možné pozměnit v~souborech .pkla. Efektivní seznam povolených akcí se získá sloučením těchto souborů. Je tedy možné mít například jeden soubor s~nastavením instalovaný z~distribučního balíčku a~druhý s~vyšší prioritou vytvořený administrátorem.
-
-\begin{figure}[h]
-    \centering
-    \begin{verbatim}
-               /var/lib/polkit-1
-               └── localauthority
-                   ├── 10-vendor.d
-                   │   └── 10-desktop-policy.pkla
-                   ├── 20-org.d
-                   ├── 30-site.d
-                   ├── 50-local.d
-                   ├── 55-org.my.company.d
-                   │   └── 10-org.my.company.product.pkla
-                   └── 90-mandatory.d
-
-               /etc/polkit-1
-               └── localauthority
-                   ├── 10-vendor.d
-                   │   └── 01-some-changes-from-a-subvendor.pkla
-                   ├── 20-org.d
-                   ├── 30-site.d
-                   ├── 50-local.d
-                   ├── 55-org.my.company.d
-                   │   └── 10-org.my.company.product.pkla
-                   └── 90-mandatory.d\end{verbatim}
-\label{fig:pkit_strukture}
-\caption{Struktura složek pro PolicyKit Local Authority s~několika .pkla soubory. Převzato z~\cite{manpklocalauth}}
-\end{figure}
-
-Local Authority pro ně zavádí poměrně propracovanou strukturu \ref{fig:pkit_strukture}. Pořadí načítání je určeno lexikografickým řazením složek a~souborů v~nich. Pokud je stejně pojmenovaný soubor v~obou umístěních (ve /var/lib/ i /etc/), nejdříve se zpracuje ten ve /var/.
-
-Ve struktuře \ref{fig:pkit_strukture} by pořadí zpracování vypadalo takto:
-\begin{itemize}
-\item 10-desktop-policy.pkla
-\item 01-some-changes-from-a-subvendor.pkla
-\item 10-org.my.company.product.pkla (z~/var)
-\item 10-org.my.company.product.pkla (z~/etc)
-\end{itemize}
-
-\begin{mylisting}
-\caption{Ukázka souboru s~nastavením PolicyKit Local Authority, Přeloženo z~\cite{manpklocalauth}}
-\label{fig:pkit_pkla}
-\begin{lstlisting}
-[Povolene akce pro zamestnance]
-Identity=unix-group:zamestnanci
-Action=com.example.uzasnyprodukt.*
-ResultAny=no
-ResultInactive=no
-ResultActive=yes
-
-[Zakazy pro par cernych ovci]
-Identity=unix-user:petr;unix-user:pavel
-Action=com.example.uzasnyprodukt.*
-ResultAny=no
-ResultInactive=no
-ResultActive=auth_admin
-\end{lstlisting}
-\end{mylisting}
-
-Na výpisu \ref{fig:pkit_pkla} je ukázka .pkla souboru. Popíšu na něm, jakým způsobem se získá výsledek autorizace určité akce. Uživatelé petr a~pavel jsou členy skupiny zamestnanci.
-
-Záznamy se zpracovávají tak jak jdou za sebou a~platí, že zpracování pokračuje i po úspěšném porovnání uživatelkého jména/skupiny s~těmi od žadatele. Jako příklad si vezmu uživatele petr, který požádá o~autorizaci akce \cppc{com.example.uzasnyprodukt.uzasnaakce}. Zaměstnanci mají tuto akci obecně povolenu bez nutnosti se přihlašovat v~první skupině souboru. Zpracování však pokračuje a~uživatel petr se bude muset pro úspěšnou autorizaci akce přihlásit jako administrátor.
-
-Rozdíl mezi položkami \cppc{ResultAny}, \cppc{ResultInactive} a~\cppc{ResultActive} se nemusí zdát zjevný. \cppc{ResultActive} a~\cppc{ResultInactive} jsou výsledky akce pro aktivní a~neaktivní sezení -- podobně jako značka \cppc{allow_active} a~\cppc{allow_inactive} v~.policy souborech. \cppc{ResultAny} pak určuje výsledek pro oba typy sezení. Alespoň jedna z~těchto položek musí být přítomna. Hodnota položky udává jakým způsobem bude uživatel žádající o~autorizaci akce autentizován.
-
-\section{KAuth}
-KAuth je nové rozhraní pro autorizaci v~KDE. Je postaveno na již existujících rozhraních v~operačních systémech. V~OS na bázi Linuxu je to zpravidla PolicyKit, v~OSX pak framework Authorization Services. Podporu pro nová rozhraní je možné přidat pomocí zásuvných modulů.
-
-Pomocí KAuthu je možné autorizovat akce uživatele. Zásuvný modul se stará o~veškeré ověřování akcí. Z~pohledu PolicyKitu je zde aplikace používající KAuth v~roli klienta.
-
-Další funkce -- a~možná nejdůležitější a~nejlépe fungující -- poskytovaná KAuthem je vytvořit pokud možno co nejjednodušší program, který pak bude v~odpověď na autorizovanou akci spuštěn příslušným autorizačním rozhraním. Takovýto program se nazývá KAuth pomocník (helper). Pomocník a~aplikace která ho využívá mohou do jisté míry komunikovat oběma směry a~je také možné sledovat průběh dlouho trvající akce uvnitř pomocníka. KAuth pomocník je rozšířením PolicyKit pomocníka o~tyto zjednodušené komunikační funkce. Hlavní výhodou je, že za použití pomocníka lze provádět privilegované akce bez nutnosti být přihlášen pod administrátorským účtem nebo tohoto účtu používat ke spuštění aplikace jako celku.
-
-Další službou KAuthu je registrace pomocníků a~akcí v~jeho jednotlivých zásuvných modulech. Uživatel KAuthu tedy specifikuje, jaké akce a~pomocníky chce použít a~při kompilaci budou tyto specifikace převedeny do formy srozumitelné pro jeho zásuvné moduly - např. PolicyKit nebo OSX Authorization Services.
-
-KAuth nepodporuje provádění změn v~seznamu platných akcí po kompilaci. Také neumožňuje měnit autorizované uživatele a~skupiny pro akce -- to je zcela přenecháno systémům pro autorizaci, které využívá. V~případě PolicyKitu je toto nastavení realizováno v~KControl modulu, který používá přímo knihovnu polkit-qt. Další nepodporovanou částí je jakákoliv idea bezpečnostních profilů přiřazovaných uživatelům a~skupinám. Nic takového konec konců není ani v~PolicyKitu, který byl KAuthu modelem. Toto jsou celkem závažné nedostatky, které budu muset nějak vyřešit.
-
-Největším omezením je však omezení na názvy KAuth akcí. Od rozhraní nad kterými funguje zdědil všechna jejich omezení v~tomto směru. Pro jména akcí je tedy možné použít jenom malá písmena anglické abecedy, číslice a~tečku jako oddělovač. Specifikace akcí v~.actions souborech je také dále omezená tím, že všechny akce musejí mít společný základ (jmenný prostor).
-
-Uvedu příklad .actions souboru \ref{fig:kauth_dotactions}. Tento byl použit k~vygenerování podobného souboru pro PolicyKit, který byl uveden dříve zde: \ref{fig:pkit_policy}.
-
-\begin{mylisting}
-\caption{Ukázka KAuth .actions souboru}
-\label{fig:kauth_dotactions}
-\begin{lstlisting}
-[Domain]
-Name=Date and Time Control Module
-Icon=preferences-system-time
-
-[org.kde.kcontrol.kcmclock.save]
-Name=Save the date/time settings
-Description=System policies prevent you from saving the date/time settings.
-Policy=auth_admin
-Persistence=session
-\end{lstlisting}
-\end{mylisting}
-
-Soubor obsahuje skupinu Domain, která popisuje ke které aplikaci patří (V~tomto případě KControl modul pro nastavení data a~času) a~jakou má mít ikonu. Textové položky mohou být lokalizovány a~velkou většinu jsem zde vynechal.
-
-Po skupině Domain následují definované akce. Platí, že název akce je také názvem skupiny v~souboru. Název akce se skládá ze dvou částí -- jmenného prostoru a~názvu akce v~něm. Zde je jmenným prostorem část \cppc{org.kde.kcontrol.kcmclock}. Název akce je \cppc{save}. Skupina dále obsahuje srozumitelný název (\cppc{Name}), popis (\cppc{Description}) a~výchozí chování při pokusu o~autorizaci.
-
-Položka Policy určuje průběh autorizace. V~případě, že je nastavena na hodnotu \cppc{yes}, je autorizace okamžitá. \cppc{no} naopak znamená, že akce nemůže být autorizována. Pokud je nastavena na \cppc{auth_self}, bude akce autorizována pokud se uživatel přihlásí pod svou vlastní identitou -- ověří se tak, že je to opravdu on. Konečně \cppc{auth_admin} znamená, že akce bude autorizována pokud se uživatel přihlásí jako administrátor.
-
-Poslední položkou skupiny je \cppc{Persistence}. Ta je nepovinná a~udává, na jak dlouho bude autorizace udělena. Možnostmi jsou \cppc{session}, kdy bude platit dokud se neodhlásí a~\cppc{always}, kdy nebude omezena.
-
-\chapter{Integrace KAuth do KAuthorized}
-První praktickou částí projektu je zjistit jak nejlépe integrovat systém KAuth do rozhraní KAuthorized. Toto není triviální úkol a~nějakou dobu mi trvalo, než jsem přišel na to, jak toho alespoň částečně dosáhnout. Začnu popisem dvou variant, které jsem musel pro závažné nedostatky zavrhnout (postupně jak jsem analyzoval jednotlivé  využitelné technologie). Třetí variantu, kterou budu implementovat, popisuji sekci \uv{Možné řešení}.
-
-Když nepřihlédnu k~omezení KAuthu a~budu ho brát jako ideální systém pro autorizaci uživatelských akcí, vypadá vše poměrně dobře. Na jedné straně Kiosk, podporující uživatelské a~skupinové profily, změnu těchto profilů (stačí být superuživatelem a~upravovat profily standardními nástroji KConfigu).
-
-Na druhé straně zatím neznámý autorizační systém. Ze zadání je však možno vyčíst, že jejich sloučení je možné. Dá se tedy předpokládat, že takový systém bude umět přidávat nové restrikce a~efektivně s~nimi pracovat, dále že bude mít nějakou podporu pro zmíněné uživatelské a~skupinové profily. Ideální by bylo, kdyby šlo specifikovat, jakým způsobem se budou slučovat a~jaké tedy budou konečné výsledky.
-
-Můj první a~také nejjednodušší nápad byl vytvořit statický .actions soubor v~kombinaci s~integrací KAuth přímo do KAuthorized. V~zásadě by toto mohlo fungovat a~je to částí řešení. Není to ale celé řešení.
-
-Problémem je zde to, že neexistuje definitivní seznam možných restrikcí akcí a~zdrojů v~Kiosk profilech. Toto by šlo řešit tak, že každý program KDE by tyto své akce a~zdroje specifikoval v~.actions souboru k~tomu určeném a~zahrnul by jeho překlad do svého sestavení. To ovšem vylučuje jakoukoliv možnost stejné úrovně podpory pro aplikace, které by takto akce nespecifikovaly.
-
-Druhým problémem je neexistence možnosti nastavit autorizované akce pro uživatele a~skupiny pomocí KAuthu. Nejen že nejdou nastavit, KAuth navíc nemá ani žádné ponětí o~něčem, co by alespoň vzdáleně připomínalo způsob jakým se aplikují Kiosk profily. V~případě použití PolicyKitu tyto vcelku základní funkce nemá ve formě knihovny žádná vrstva - PolicyKit, polkit-qt, polkit-kde ani KAuth.
-
-Druhý nápad byl takovýto: když KAuth nepodporuje nic z~toho, co by korektní implementace vyžadovala, bude nutné to nějak obejít, a~to co nejjednodušším způsobem.
-
-Možným řešením je jednoduše se vzdát toho, že budeme mapovat akce mezi Kioskem a~KAuthem jedna ku jedné. Mělo by být přece možné umístit do KAuth pomocníka instanci KConfigu, která načte požadovaný Kiosk profil a~bude přes systém D-Bus umožňovat dotazování se na jednotlivé hodnoty v~nich. Bylo by také možné tyto hodnoty měnit. V~podstatě by to byl stále pouze KConfig, jen obalen v~pomocníkovi.
-
-Problémy tohoto řešení nemusejí být zcela zjevné, pokusím se je ale popsat. Za prvé -- nezíská se tím vůbec žádná výhoda z~pohledu bezpečnosti. Kiosk profily musejí stále zůstat čitelné pro všechny uživatele, jinak by se při spuštění programů nemohly načíst a~části které nebudou takto integrovány v~pomocníkovi (vše s~výjimkou omezení akcí a~zdrojů ) by tím by byly zcela neefektivní.
-
-Odpadá tak výhoda KAuthu, kde jak seznam restrikcí, tak jaké restrikce pro koho platí může být skryt před uživateli. Například při použití PolicyKit Local Authority je možné nastavit všechny soubory čitelné jenom superuživatelem.
-
-Za druhé -- KAuth pomocníci mají omezenou životnost. Pokud nejsou využíváni po dobu deseti vteřin, jsou ukončeni (viz. zdrojový kód KAuth). Znamená to znovu načíst celý KConfig objekt. I~když je toto načítání vysoce optimalizováno, stále je vcelku zbytečné načítat celou konfiguraci dvakrát - jednou v~programu, který by volal KAuthorized a~podruhé v~KAuth pomocníkovi. Sdílet zde jeden objekt například umístěním do společné paměti by byl holý nesmysl, takže se taková věc ještě více prodraží.
-
-Jedna z~vlastností KAuthu, kterou by se tak nedalo využít jsou srozumitelné názvy akcí v~systému. Místo \cppc{org.kde.kiosk.action.help} a~mnoha dalších by byly v~systému jen akce pomocníka. V~tom případě ne nedá mluvit o~integraci KAuthu a~KAuthorized.
-
-Jsou tu i další problémy -- KAuth podporuje použití pomocníků pouze v~kombinaci se systémy PolicyKit a~D-Bus. Uživatelé Windows a~OSX mají smůlu. Tomu se asi nevyhneme.
-
-Je vidět, že ani tudy cesta nevede. Jak tedy postupovat když se zadání zdá být nesplnitelné?
-
-\section{Možné řešení}\label{mozres}
-Řešení nebude až tak pěkné jak by mohlo být, kdyby KAuth podporoval zápis autorizací jakožto knihovní funkci. Stanovím zde některé základní podmínky, které integrace KAuth do KAuthorized musí splňovat a~omezení, která jsou daná implementací KAuthu. Některá je možné obejít, jiná bohužel ne.
-
-Použití KAuthu by nemělo být povinné a~mělo by být zachováno chování rozhraní \cppc{KAuthorized} pokud možno tak, aby se z~pohledu aplikací nic nezměnilo. Zde je problém to, že administrátor může, ale také nemusí nastavit v~systému \cppc{KConfig} kteroukoliv položku jako nezměnitelnou. Pokud vložím kontrolu oprávnění pomocí KAuthu před kontrolu pomocí KConfigu, musím nějak zaručit, že omezení známá v~KAuthu mohou být brána jako změnitelná, tak aby mohly být dále modifikována pomocí nastavení v~KConfigu. Pokud vím, KAuth ani PolicyKit toto neumožňují. Musí se také počítat s~tím, že KAuth nemusí být funkční (je v~nové verzi použité v~této práci stále ještě nestabilní) nebo že konvertor zatím nikdy nebyl spuštěn a~v~těchto případech použít normální nastavení Kiosk profilu přes \cppc{KConfig}.
-
-Dále je potřeba implementovat konvertor Kiosk profilů na nastavení lokálního systému pro autorizaci. Zde se budu muset držet PolicyKitu, protože jediný další podporovaný systém je Authorization Services v~operačním systému Apple OSX. Hardware potřebný pro legální provoz OSX bohužel nemám. Takovýto konvertor by měl umět běžet jak KAuth pomocník, tak i jako samostatný program spustitelný uživatelem z~příkazové řádky. Konverze z~Kiosk profilů bude jednosměrná, bude používat polkit-qt pro získání seznamu podporovaných omezení a~bude produkovat soubory .pkla, použitelné jen a~pouze v~PolicyKit Local Authority. Konvertor by mělo být možné, až bude stabilní, integrovat do KAuthu nebo balíku policykit-kde.
-
-Dalším omezením konvertoru je, že pokud bude použita jiná autorita než PolicyKit Local Authority, konverze s~ní nebude fungovat. Ale vzhledem k~tomu, že tato autorita je výchozí, předpokládám že bude k~dispozici.
-
-V~konvertoru je nutné zohlednit to, že postup aplikace profilů v~Kiosku je jiný než postup ověření autorizace v~PolicyKitu. Musí se \uv{nasimulovat} Kiosk a~jeho zvláštnosti, aby se nezměnilo chování KAuthorized.
-
-Integrace KAuth do KAuthorized opět není triviální záležitostí -- je to sice otázka několika volání funkcí KAuth, ale autorizační funkce KAuthu na rozdíl od systémů na kterých staví nevrací chybové kódy v~případě, že akce neexistuje. Toto bude potřeba změnit.
-
-Omezení na zdroje \cppc{KDE Resource Restrictions} si vyžádají změny ve třídě \cppc{KStandardDirs} -- bude potřeba umístit do jmenného prostoru \cppc{KAuthorized} funkci, která bude vracet seznam typů zdrojů s~nastaveným omezením.
-
-Je také třeba zopakovat, že KAuth má některá omezení na názvy akcí. Všechny akce v~jednom .actions souboru musejí mít společný jmenný prostor a~v~PolicyKitu soubor musí být podle tohoto jmenného prostoru pojmenován. Navíc mohou názvy obsahovat pouze malá písmena latinky, číslice a~tečku jako oddělovač. Názvy akcí a~zdrojů v~Kiosku tato omezení samozřejmě nemají a~často využívají jiné znaky jako je například pomlčka, podtržítko nebo lomítko. Tyto znaky je potřeba buď odstranit nebo nahradit. Vzniká tak reálná možnost kolize názvů.
-
-Otázkou tedy je zda má vůbec smysl pokračovat. Rozhodl jsem se, že implementuji alespoň to co půjde, abych lépe demonstroval nemožnost celé věci v~testovací fázi.
-\section{Změny v~KAuthu}
-Jak jsem již zmínil v~sekci \ref{mozres}, je potřeba rozšířit KAuth tak, aby vracel vedle informace o~úspěšnosti autorizace také zvláštní hodnotu pro případ, že akce není použitému systémem pro autorizaci známa. Důvodem je, že  Všechny systémy, které KAuth podporuje umožňují toto zjistit a~neměl by být tedy problém tuto vlastnost so KAuthu přidat.
-\subsection*{PolicyKit a~Policykit1}
-Tyto systémy jsou si velmi podobné. Ve výchozím stavu vypadá funkce pro získání autorizace takto: \ref{kauth-oldmethod}. Hodnota \cppc{Unknown} je vrácena v~případě, kdy dojde k~chybě během autorizace. Důvod chyby lze zjistit bližším dotazováním autorizačního rozhraní. Úprava metody pak vypadá takto: \ref{kauth-newmethod}.
-
-Při výsledku typu \cppc{Unknown} se zjistí, jestli byla chyba typu \cppc{E_CheckFailed} a~v~takovém případě se vrací hodnota \cppc{Action::Invalid}, která znamená, že jde o~neznámou akci.
-\subsection*{OSX Authorization Services}
-Tento framework umožňuje se přímo dotazovat na existenci akcí pomocí funkce \linebreak\cppc{AuthorizationRightGet}. Přidání podpory do KAuth je tak jednoduchou záležitostí přidání dotazu na existenci na začátek metody: \ref{osxverify}.
-%REF:http://developer.apple.com/mac/library/documentation/Security/Reference/authorization_ref/Reference/reference.html
-
-\section{Přesun vyhodnocení omezení na zdroje do KAuthorized}
-Zjišťování seznamu omezení na zdroje je umístěno v~metodě \cppc{addCustomized} třídy \cppc{KStandardDirs} a~tento seznam je vytvářen před tím, než se načtou Kiosk profily. Tato metoda přidává profily k~cestám pro načítání konfigurace a~třída \cppc{KComponentData}, která tuto metodu volá následně způsobí znovunačtení konfigurace. Z~takovéto načtené konfigurace ale již nejsou vytaženy seznamy omezení zdrojů.
-
-Rozhodl jsem zjišťování seznamu omezených zdrojů přesunout do rozhraní \cppc{KAuthorized}, aby byly změny nutné pro integraci KAuthu pokud možno pouze na jednom místě.
-
-Dále jsem se rozhodl, že oddělím zpracování tohoto seznamu od metody \cppc{addCustomized()} tak, aby se dalo spustit z~třídy \cppc{KComponentData} poté, co \cppc{KStandardDirs} přidá Kiosk profily mezi konfiguraci. Docílí se tím toho, že je možné uložit omezení zdrojů stejným způsobem jako omezení na akce.
-
-Implementoval jsem tedy funkci \cppc{authorizeResourceTypes} pro získání seznamu omezení na zdroje ve formě objektu \cppc{QStringList} a~umístil ji do rozhraní KAuthorized. Dále jsem přesunul vyhodnocení těchto omezení do nové metody \linebreak\cppc{evaluateRestrictedResources()} v~\cppc{KStandarDirs}, která je volána po znovu-načtení konfigurace po přidání profilů. Bylo nutné také změnit konstruktor privátního objektu v~KAuthorized, aby neblokoval zpracování profilů. Původně nebyl navržen na to, aby byl použit tak brzo během spouštění programů.
-
-\section{Specifikace omezení akcí a~zdrojů}
-Ke specifikaci akcí v~systému KAuth jsou využity statické .actions soubory. Nevýhody tohoto řešení jsem již uvedl, ale jinak to nejde. Jako základní jmenný prostor jsem se rozhodl použít \cppc{org.kde.kiosk}. Pro akce jsem se rozhodl pro \cppc{org.kde.kiosk.action} a~pro zdroje \cppc{org.kde.kiosk.resource}.
-
-Názvy akcí a~zdrojů nemohou obsahovat jiné znaky než malá písmena a~číslice. Je tedy nutné přeložit jejich skutečné názvy do formy, kterou je KAuth schopen použít. Z~akce \cppc{action/help} se tak stane \cppc{actionhelp}, společně se jmenným prostorem pak \linebreak\cppc{org.kde.kiosk.action.actionhelp}. Kdyby exitovala jiná akce s~názvem  \cppc{action\_help}, došlo by ke kolizi.
-
-\section{Implementace konvertoru}
-Konvertor se skládá ze dvou částí. Hlavní a~nejdůležitější částí je pomocník, postavený na knihovně KAuth. Ten implementuje veškeré funkce celku (ve zdrojovém kódu je to kdelibs/kdecore/auth/kioskpklahelper.cpp). Druhou částí je jednoduchý terminálový program, který není až na spuštění pomocníka přes KAuth příliš zajímavý (ve zdrojových kódech je to kioskpklaconvert.cpp ve stejné složce jako pomocník).
-
-Konvertor funguje tak, že nejdříve získá ze souboru /etc/kde4rc nastavení Kiosku, pomocí něj vyhledá Kiosk profily, komu a~jakým skupinám jsou přiřazeny a~jaké je pořadí skupin při zpracování skupinových profilů. Je také získán seznam akcí známých v~PolicyKit1 Local Authority. Tento seznam se filtruje do dvou skupin podle jmenných prostorů použitých pro omezení na akce a~zdroje. Toto jsou základní vstupní parametry programu. Uživatel nemá možnost do procesu přímo zasáhnout -- program nemá žádné uživatelské vstupy.
-
-Další částí je vytvoření .pkla souboru ze skupinových profilů. V~pořadí zjištěném z~nastavení Kiosku se z~nich pomocí KConfigu načtou soubory globálního nastavení kdeglobals. Z~těch jsou dále vytaženy skupiny \cppc{KDE Action Restrictions} a~\cppc{KDE Resource Retrictions}. Klíče jejich položek jsou zpracovány stejně jako specifikace v~.actions souborech. Upravené klíče společně s~jejich hodnotami a~přiřazenou skupinou pak tvoří záznamy ukládané do .pkla souboru pro skupiny. Soubor je uložen tak, aby byl zpracován dříve než soubory pro jednotlivé uživatele (jsou načítány v~lexikografické pořadí podle názvu).
-
-Dalším bodem je zpracování profilů přiřazených uživatelům. Postup je z~části podobný jako u~bodu předchozího, ale platí, že na uživatele s~nastaveným uživatelským Kiosk profilem se skupinové profily nevztahují. Znamená to, že každý uživatel musí mít specifikovány všechny akce ve výchozím stavu (povoleno). K~tomu se dále přidávají omezení z~uživatelského profilu. Ve výsledku se tak vyruší vliv skupinových profilů -- pro ilustraci: \ref{fig:konv_profily}. Pro každého uživatele je zvlášť vytvořen .pkla soubor.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=8.5cm]{obrazky/profily.pdf}
-    \caption{Aplikace Kiosk profilů}
-    \label{fig:konv_profily}
-\end{figure}
-
-Problémem řešení je zejména nemožnost reprezentace vlastnosti nezměnitelnosti z~KConfigu. Omezení jsou jednou specifikována jako hodnota ano/ne v~nastavení PolicyKit Local Authority a~jsou tak z~pohledu KConfigu nezměnitelná. Jedinou možností jak docílit toho, aby byla změnitelná je nezanést ji do PolicyKitu. Pak ale není možné s~nimi v~něm pracovat. Když je jednou akce jako \cppc{action/help} pro ukázání menu s~nápovědou zanesena do KAuthu, ztrácí nad ní uživatel kontrolu a~nemůže tak menu schovat. To je poměrně závažný nedostatek.
-
-% svn://svn.kde.org/home/kde/trunk/extragear/base/polkit-kde-1/
-\section{Integrace KAuth do KAuthorized}
-K~dokončení integrace zbývá už pouze jediný krok -- volat z~rozhraní KAuthorized metody systému KAuth. To se ukázalo být největším problémem ze všech. Vypadá to totiž, že KAuth zatím nikdy nebyl použit v~takto velkém rozsahu (autorizace všech akcí v~KDE). Není tedy překvapením, že tato integrace odkryla některé problémy v~KAuth a~jím implementovaném PolicyKitu.
-
-KAuth nabízí několik možností, jak autorizovat akci. V~zásadě se jedná o~různé metody třídy \cppc{KAuth::Action}, mající mírně odlišný význam. Prvním metodou je \cppc{execute()} -- tato metoda je uvedena v~příkladu \cite{Kauth-usage} a~je určena pro jednorázové blokující provedení akce. Pokud je to potřeba, uživatel je požádán o~autentizaci. Metoda má podle \cite{Kauth-usage} fungovat i bez přítomnosti pomocníka. \cppc{execute()} má také asynchronní verzi.
-
-Další metodou je \cppc{authorize()}. Tato metoda je určena pro získání autorizace pro akce před tím, než by byla akce provedena. Má být používána ostatními metodami třídy \cppc{KAuth::Action}.  Metoda podobně jako \cppc{execute()} může od uživatele vyžadovat autentizaci. Třetí metodou je \cppc{status()} -- tato metoda je podobná \cppc{execute()}, ale v~případech, kdy by byla vyžadována autentizace pouze o~této skutečnosti
-informuje.
-
-Takovýto význam by alespoň tyto metody měly mít. Skutečnost je ale odlišná. \cppc{KAuth::Action} používá pro autentizaci a~použití pomocníků statické zásuvné moduly -- to znamená, že jsou určeny při sestavení. Tyto moduly implementují lokálně dostupné autentizační mechanismy. Zde vzniká problém kvality těchto mechanismů a~jejich implementace v~KAuthu. To je také hlavním kamenem úrazu. Mnou používaný PolicyKit1 například vůbec neimplementuje metodu \cppc{authorize()}. Ta namísto výsledku vždy vrací hodnotu \cppc{Action::Authorized}. Její místo zastává metoda \cppc{status()}, která obaluje metodu \cppc{checkAuthorizationSync()} z~knihoven polkit-qt-1. Toto je synchronní metoda pro autorizaci uživatele, která umožňuje upravit zda bude vyžadovat od uživatele autentizaci příznakem. Proč není implementována metoda \cppc{authorize()} je nejasné.
-
-Ze všech uvedených metod je nejvhodnější, alespoň podle komentářů v~kódu, metoda \cppc{status()}. Po konverzi z~Kiosk profilů totiž nevznikají akce pro jejichž autorizaci by bylo nutné se autentizovat. Při použití této metody v~kombinaci s~PolicyKitem však dochází k~nežádoucím jevům. Program, který používá takto upravené rozhraní KAuthorized totiž po čase \uv{zamrzne}. To stejné se stane i s~celým sezením KDE. Zkoušel jsem použít i jiné metody, ale výsledky byly ještě horší.
-
-Pro zjištění kde je chyba jsem vytvořil jednoduchý test kauthDoS. Ten v~nekonečném cyklu volá \cppc{KAuth::Action::status()} a~v~pravidelných intervalech vypisuje hlášení. Když program přestane vypisovat, znamená to, že došlo k~chybě. Démon polkitd a~program kauthDoS byly spuštěny v~debuggeru gdb a~byly získány \uv{backtrace} z~obou programů (výpisy \ref{btrac1} a~\ref{btrac2}). Podle těch to vypadá, že problém vzniká během komunikace jednotlivých částí PolicyKitu. Chybu jsem ohlásil jeho autorovi (David Zeuthen) a~čekám na odpověď.
-
-\begin{mylisting}
-\caption{Backtrace z~démona polkitd při \uv{zamrznutí} (zkrácený)}
-\label{btrac1}
-\begin{lstlisting}
-#0  poll () from /lib/libc.so.6
-#1  in socket_do_iteration () from /usr/lib/libdbus-1.so.3
-#2  in _dbus_transport_do_iteration () from /usr/lib/libdbus-1.so.3
-#3  in _dbus_connection_do_iteration_unlocked () from /usr/lib/libdbus-1.so.3
-#4  in _dbus_connection_block_pending_call () from /usr/lib/libdbus-1.so.3
-#5  in egg_dbus_connection_pending_call_block (
-       connection=0x61a990, pending_call_id=196205)
-       at eggdbusconnection.c:2521
-...      
-#16 in g_main_context_dispatch ()
-       from /usr/lib/libglib-2.0.so.0
-#17 in g_main_context_iterate ()
-       from /usr/lib/libglib-2.0.so.0
-#18 in g_main_loop_run ()
-       from /usr/lib/libglib-2.0.so.0
-#19 in main ()
-\end{lstlisting}
-\end{mylisting}
-
-\begin{mylisting}
-\caption{Backtrace z~testovacího polkitd při \uv{zamrznutí} (zkrácený)}
-\label{btrac2}
-\begin{lstlisting}
-#0  in poll () from /lib/libc.so.6
-#1  in socket_do_iteration ()
-    from /usr/lib/libdbus-1.so.3
-#2  in _dbus_transport_do_iteration ()
-    from /usr/lib/libdbus-1.so.3
-#5  in egg_dbus_connection_pending_call_block (
-    connection=0x6add50, pending_call_id=74401)
-    at eggdbusconnection.c:2521
-#6  in polkit_authority_check_authorization_sync ()
-    from /usr/lib/libpolkit-gobject-1.so.0
-#7  in PolkitQt1::Authority::checkAuthorizationSync ()
-    from /home/kde-devel/kde/lib/libpolkit-qt-core-1.so.0
-#8  in KAuth::Polkit1Backend::actionStatus ()
-    at kdelibs/kdecore/auth/backends/polkit-1/Polkit1Backend.cpp:87
-#9  0x000000000040162e in main (argc=1, argv=<value optimized out>)
-    at kdelibs/kdecore/auth/kauthDoS.cpp:40 
-\end{lstlisting}
-\end{mylisting}
-Systém KAuth za využití PolicyKit1 tedy do jisté míry funguje, není ale nijak spolehlivý. Co funguje dobře jsou pomocníci. Ti mají zpravidla několik málo akcí, které se používají pouze pokud je to nutné -- příkladem budiž KControl modul pro nastavení času, nebo mnou implementovaný konvertor pro Kiosk profily. Při integraci do rozhraní KAuthorized, které je využíváno téměř každým programem v~KDE je však objem dotazů o~několik řádů vyšší. Sezení KDE tak přestane reagovat již během spuštění. Chyba v~podstatě umožňuje přihlášenému uživateli provést DoS\footnote{Denial of Service} útok na PolicyKit, protože polkitd běží jako systémová služba, společná pro všechny uživatele. V~dalším testování tedy bohužel nelze smysluplně pokračovat, dokud nebude tato chyba odstraněna.
-
-\section{Návrh dalšího postupu}
-Výše byly popsány vybrané části rozhraní KAuthorized, KAuth a~PolicyKit. Nyní následuje návrh řešení v~nich nalezených nedostatků a~také návrh na jejich rozšíření. V~prvé řadě je potřeba opravit zmíněnou bezpečnostní chybu v~PolicyKitu.
-
-Dále je potřeba rozšířit KAuth:
-\begin{enumerate}
-\item Je potřeba, aby uměl hlásit, pokud autorizovaná akce není známa -- a~to pro všechny podporované autorizační systémy. Toto jsem pro účely práce udělal a~otestoval pro metodu \cppc{status()} a~PolicyKit1. Ideální by bylo integrovat vyhledání akce do konstruktoru třídy \cppc{KAuth::Action} a~vracet pak výsledek pomocí volání její metody \cppc{isValid()}.
-\item KAuth musí umět nejen ověřovat a~spouštět akce, ale také měnit oprávnění k~těmto akcím pro uživatele a~skupiny. Zde je zatím k~dispozici pouze KControl modul pro PolicyKit v~balíku policykit-kde-1 a~sním spojený pomocník na bázi polkit-qt-1, ale ten je zaměřen pouze na uživatele a~není nijak do KAuthu integrován.
-\item Mělo by také být možné přidávat nové akce. To znamená, že by se nemusely do systému instalovat statické soubory s~definicemi akcí.
-\end{enumerate}
-
-Body 2 a~3 by bylo možné realizovat jakožto pomocníky a~přidat do systému KAuth rozhraní, které by umožnilo s~nimi pracovat.
-
-Korektní integraci KAuthu přímo do KAuthorized považuji kvůli omezením ze strany KAuthu za nemožnou. I~když to tak na první pohled nevypadá, oba systémy jsou velmi rozdílné v~některých kritických bodech. I~kdyby byla integrace úspěšná, nezískalo by se tím téměř nic. Na pouhé dotazování se na to, jestli je uživateli dovoleno provádět nějakou akci není potřeba KAuth. Stačí jakákoliv databáze schopná uložit údaje ve formě klíč-hodnota. To však nebrání využití KAuthu tam, kde použití pomocníků poskytuje větší bezpečnost. Izolují se části programu vyžadující administrátorská práva od zbytku kódu. Z~pohledu administrátora je možnost udělit konkrétním uživatelům a~skupinám oprávnění tyto pomocníky spouštět snad největší výhodou řešení.
-
-Dalším možným rozšířením by bylo nějakým způsobem spojit KAuth se systémy jako je SELinux\footnote{Security Enhanced Linux}. Zde by byla výhoda v~tom, že akce, které by jinak byly uživateli umožněny jde omezit na úrovni operačního systému. Využitelnost KAuthu by se tak rozšířila například na omezení spouštění programů a~použití knihoven (příkladem budiž KControl moduly) a~skutečné omezení zdrojů dat. Například pokud by měl uživatel zakázáno používat vlastní pozadí na plochu, bylo by zamezeno programu plasma-desktop načítat jiné obrázky, než ty instalované do systému administrátorem - a~to bez možnosti to obejít. Omezení na zdroje tak jak je v~KDE4 je v~porovnání s~takovým řešením v~podstatě bezzubé. Potom by mělo smysl odstranit některé typy omezení ze systému KConfig, a~přímo je integrovat do KAuth. Za jiných podmínek to však považuji za nesmysl.
-
-Co se týče kombinace Kiosk, KAuthorized a~KConfig, je rozhodně co dohánět. Bylo by dobré tyto části KDE pročistit a~zdokumentovat. Zdvojení funkcí \cppc{KAuthorized::authorize()} a~\cppc{KAuthorized::authorizeKAction()} je poněkud chaotické a~vede ke zmatkům, kdy je jeden název akce používán s~funkcemi náhodně. \cppc{KAuthorized::authorizeKAction()} by měla přijímat jako parametr pouze reference typu KAction, aby se takovým zmatkům předešlo.
-
-\chapter{Nástroj KioskTool}
-Při psaní této kapitoly jsem hojně využíval knih \cite{StarchQt4} a~\cite{Ezust}. Obzvláště \cite{Ezust} je vhodným zdrojem informací, protože je volně dostupná.
-
-Starší verze nástroje pro KDE3 je již popsána v~druhé kapitole. Tato kapitola bude tedy věnována portu na KDE4 a~jakým způsobem funguje. Navrhnu pro něj nové uživatelské rozhraní a~opravím chyby, aby bylo možné program začít používat.
+\section{KioskTool v KDE 4}
+Port nástroje do KDE4 totiž již existuje, i když je nedokončený a~dá se říci opuštěný. Uživatelské rozhraní se příliš nezměnilo: \ref{fig:kt4_uvod}. Původní nastavení pomocí velkého XML souboru bylo odstraněno a~nahrazeno mnoha menšími soubory (samozřejmě používají KConfig). To má za účel umožnit ostatím autorům napsat si pro své aplikace rozšíření. Nástroj však ztratil většinu svých starých vlastností, schopnost spouštět KControl moduly a~náhledy, své pěkné (i když zbytečné) obrázkové vzezření a~získal několik dalších chyb.
 
 \begin{figure}[h]
     \centering
@@ -587,8 +553,6 @@ Starší verze nástroje pro KDE3 je již popsána v~druhé kapitole. Tato kapit
     \caption{Uživatelské rozhraní se od verze z~KDE3 příliš nezměnilo}
     \label{fig:kt4_uvod}
 \end{figure}
-
-Port nástroje do KDE4 totiž již existuje, i když je nedokončený a~dá se říci opuštěný. Uživatelské rozhraní se příliš nezměnilo: \ref{fig:kt4_uvod}. Původní nastavení pomocí velkého XML souboru bylo odstraněno a~nahrazeno mnoha menšími soubory (samozřejmě používají KConfig). To má za účel umožnit ostatím autorům napsat si pro své aplikace rozšíření. Nástroj však ztratil většinu svých starých vlastností, schopnost spouštět KControl moduly a~náhledy, své pěkné (i když zbytečné) obrázkové vzezření a~získal několik dalších chyb.
 
 \paragraph{Strukturální popis}
 Aplikace KioskTool se skládá z~několika základních komponent a~využívá grafické rozhraní navržené pomocí nástroj Qt Designer (části rozhraní jsou specifikovány v~.ui souborech, ze kterých se při kompilaci generuje kód). Vzhled je tedy alespoň z~pohledu programátora  částečně oddělen od funkce programu. Grafické prvky programu však přímo obsahují data se kterými se pracuje -- není využito návrhového vzoru MVC\footnote{Model-View-Controller}.
@@ -787,7 +751,52 @@ Příklad postupu ze složky se zdrojovým kódem, umístěné tak, aby se do n�
 \cppc{sudo make install}
 
 Při použití kde-devel stačí umístit zdrojové kódy KioskTool mezi zdrojové kódy ostatních částí KDE a~sestavit je pomocí \cppc{cmakekde}.
+\chapter{Backtrace z KAuthDoS a PolicyKit déemona}
+\begin{mylisting}
+\caption{Backtrace z~démona polkitd při \uv{zamrznutí} (zkrácený)}
+\label{btrac1}
+\begin{lstlisting}
+#0  poll () from /lib/libc.so.6
+#1  in socket_do_iteration () from /usr/lib/libdbus-1.so.3
+#2  in _dbus_transport_do_iteration () from /usr/lib/libdbus-1.so.3
+#3  in _dbus_connection_do_iteration_unlocked () from /usr/lib/libdbus-1.so.3
+#4  in _dbus_connection_block_pending_call () from /usr/lib/libdbus-1.so.3
+#5  in egg_dbus_connection_pending_call_block (
+       connection=0x61a990, pending_call_id=196205)
+       at eggdbusconnection.c:2521
+...      
+#16 in g_main_context_dispatch ()
+       from /usr/lib/libglib-2.0.so.0
+#17 in g_main_context_iterate ()
+       from /usr/lib/libglib-2.0.so.0
+#18 in g_main_loop_run ()
+       from /usr/lib/libglib-2.0.so.0
+#19 in main ()
+\end{lstlisting}
+\end{mylisting}
 
+\begin{mylisting}
+\caption{Backtrace z~testovacího polkitd při \uv{zamrznutí} (zkrácený)}
+\label{btrac2}
+\begin{lstlisting}
+#0  in poll () from /lib/libc.so.6
+#1  in socket_do_iteration ()
+    from /usr/lib/libdbus-1.so.3
+#2  in _dbus_transport_do_iteration ()
+    from /usr/lib/libdbus-1.so.3
+#5  in egg_dbus_connection_pending_call_block (
+    connection=0x6add50, pending_call_id=74401)
+    at eggdbusconnection.c:2521
+#6  in polkit_authority_check_authorization_sync ()
+    from /usr/lib/libpolkit-gobject-1.so.0
+#7  in PolkitQt1::Authority::checkAuthorizationSync ()
+    from /home/kde-devel/kde/lib/libpolkit-qt-core-1.so.0
+#8  in KAuth::Polkit1Backend::actionStatus ()
+    at kdelibs/kdecore/auth/backends/polkit-1/Polkit1Backend.cpp:87
+#9  0x000000000040162e in main (argc=1, argv=<value optimized out>)
+    at kdelibs/kdecore/auth/kauthDoS.cpp:40 
+\end{lstlisting}
+\end{mylisting}
 \chapter{Fragmenty kódu - úpravy v KAuth}
 \begin{mylisting}
 \caption{Autorizace akce v~PolicyKit1}
@@ -812,7 +821,7 @@ Action::AuthStatus Polkit1Backend::actionStatus(const QString &action)
 \end{lstlisting}
 \end{mylisting}
 \begin{mylisting}
-\caption{Autorizace akce v~PolicyKit1 po úpravách}
+\caption{Autorizace akce v~PolicyKitu po úpravách}
 \label{kauth-newmethod}
 \begin{lstlisting}[language=C++]
 ...
