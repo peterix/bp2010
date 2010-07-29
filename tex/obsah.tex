@@ -419,7 +419,7 @@ Postup testování je takový, že se vytvoří určitá množina profilů, kter
 
 Všechny testy proběhly podle očekávání.
 
-Dále byl vytvořen jednoduchý test na ověření funkčnosti KAuth -- kauthtest. Ten testuje reakci KAuth na požadavek o~autorizaci čtyř akcí. Jedna je vždy autorizována, jedna není nikdy autorizována, jedna vyžaduje přihlášení uživatele a~jedna neexistuje. S pomocí tohoto nástroje jsem testoval změny provedené v KAuth.
+Dále jdem vytvořil jednoduchý test na ověření funkčnosti KAuth -- kauthtest. Ten testuje reakci KAuth na požadavek o~autorizaci čtyř akcí. Jedna je vždy autorizována, jedna není nikdy autorizována, jedna vyžaduje přihlášení uživatele a~jedna neexistuje. Tento nástroj byl použit během implementace změn v~rozhraní KAuth.
 
 \section{Návrh dalšího postupu}
 Výše byly popsány vybrané části rozhraní KAuthorized a KAuth a~také jejich integrace. Nyní následuje návrh řešení v~nich nalezených nedostatků a~také návrh na jejich rozšíření. V~prvé řadě je potřeba opravit zmíněnou bezpečnostní chybu v~PolicyKitu. 
@@ -432,17 +432,17 @@ Dále je potřeba rozšířit KAuth:
 \item V neposlední řadě by také mělo jít doplnit podporu nezměnitelnosti do rozhraní KAuth. To vyžaduje další změny v knihovně polkit-qt, která je využita mezi KAuthem a samotným PolicyKitem.
 \end{enumerate}
 
-Bod 1 nezávisle implementoval Dario Freddi, ale implementace způsobuje množství fatálních chyb při použití KAuth s~rozhraním KAuthorized. Na vině je to, že KAuthorized je využíván dříve, než jsou všechny části aplikace inicializovány a~takto upravený KAuth na nich závisí. Výsledkem jsou chyby typu segmentation fault. V zájmu funkčnosti řešení jsem tyto změny odstranil. Pokud má být KAuth skutečně integrován do KAuthorized, bude potřeba tento problém korektně vyřešit.
+Bod 1 nezávisle implementoval Dario Freddi, ale implementace způsobuje množství chyb typu segmentation fault při použití KAuth z~rozhraní KAuthorized. Na vině je to, že KAuthorized je využíván dříve, než jsou všechny části aplikace inicializovány a~takto upravený KAuth na nich závisí. V zájmu funkčnosti řešení jsem tyto změny odstranil. Pokud má být KAuth skutečně integrován do KAuthorized, bude potřeba tento problém korektně vyřešit.
 
 Body 2 a~3 by bylo možné realizovat jakožto pomocníky a~přidat do systému KAuth rozhraní, které by umožnilo s~nimi pracovat.
 
-Díky omezením ze strany KAuthu a nalezeným chybám je bohužel integrace KAuthu do Kiosku pouhým experimentem. Oba systémy jsou totiž velmi rozdílné v~některých kritických bodech a KAuth nikdy nemůže plně nahradit flexibilitu KConfigu. Jedinou výhodou použití KAuth je tak jen skrytí nastavení před uživatelem, a to pouze v případě, že by se podařilo dohledat všechny akce v Kiosku použité, převést veškeré Kiosk profily na nastavení KAuth a následně je smazat. Pozitivními výsledky integrace jsou tak jen nalezené a~opravené chyby.
+Díky omezením ze strany KAuthu a nalezeným chybám je bohužel integrace KAuthu do Kiosku pouhým experimentem. Oba systémy jsou totiž velmi rozdílné v~některých kritických bodech a KAuth nikdy nemůže plně nahradit flexibilitu KConfigu. Jedinou výhodou použití KAuth je tak jen skrytí nastavení před uživateli, a~to pouze v~případě, že by se podařilo dohledat všechny akce v~Kiosku použité, převést veškeré Kiosk profily na nastavení KAuth a~následně je buď odstranit ze systému, nebo k~nim omezit přístup. Omezení přístupu je všek problematické, protože omezení akcí a zdrojů v Kiosk profilech může být promícháno s~normálním nastavením aplikací. Pozitivními výsledky integrace jsou tak jen nalezené a~opravené chyby.
 
 KAuth by bylo lepší použít k tomu, k čemu byl určen. Tedy k~oddělení částí aplikací, které vyžadují administrátoská práva od těch částí, které je nevyžadují. Ne však jako úložiště nastavení.
 
 Některé změny implementované v KDE-Libs pro účely integrace KAuth a~Kiosku by však bylo možné bez problémů začlenit. Zde se jedná zejména o~načítání omezení zdrojů dat z~Kiosk profilů, které předtím nebylo funkční.
 
-Další postup by měl spíše směřovat k~obnovení funkčnosti jednotlivých omezení akcí a zdrojů dat v~Kiosku. Kiosk jako celek je bohužel jednou z~méně udržovaných částí KDE-Libs a~určitá část nastavitelných omezení je zcela neefektivní. Ne všechny jeho části přežily přechod z~KDE3 na KDE4 bez úhony. Možným prvním krokem by mohlo být odstranění zdvojení funkce pro autorizaci akcí (\cppc{KAuthorized::authorize()} a~\cppc{KAuthorized::authorizeKAction()}), které vede někdy k jejich zaměňování.
+Kiosk jako celek je bohužel jednou z~méně udržovaných částí KDE-Libs a~určitá část nastavitelných omezení je zcela neefektivní. Další postup by tedy měl spíše směřovat k~obnovení funkčnosti jednotlivých omezení akcí a~zdrojů dat v Kiosku.  Ne všechny jeho části přežily přechod z~KDE3 na KDE4 bez úhony. Prvním krokem by mohlo být odstranění zdvojení funkce pro autorizaci akcí -- cppc{authorize()} a~\cppc{authorizeKAction()}. Toto zdvojení totiž vede k~jejich zaměňování.
 
 \chapter{Nástroj KioskTool}
 Tato kapitola se zabývá portem nástroje KioskTool z~KDE~3 na KDE~4. Nástroj KioskTool slouží k~jednoduchému vytváření, nastavování a přiřazování Kiosk profilů. V současné době existuje ve dvou verzích. Starší verze pro prostředí KDE~3 a~novější, ale nedokončený port pro KDE~4. Funkce verze pro KDE~3 jsou pro názornost ilustrovány snímky z~okna programu.
@@ -582,8 +582,10 @@ Záložka s~profily \ref{fig:kt4_newprofiles} obsahuje jak název napovídá sez
 Všechny záložky budou používat stejný model pro naplnění seznamů. Všechny také mají akci pro uložení změn \uv{Commit}.
 
 \section{Implementace}
+TODO: Zatím nedopsáno, v~podstatě se jedná o odstranění původního grafického rozhraní na bázi \uv{výměny karet}, použití navrženého grafického rozhraní a~implementaci modelu, který plní víceřádkové listboxy v~rozhraní. Tedy jeden model a~několik pohledů na něj.
+
 \section{Další postup}
-Změny v~profilech samotných by bylo dobré provádět způsobem podobným jako využívá nástroj KConfigEditor. Ten vypadá zhruba takto: \ref{fig:kconfeditor}. KConfigEditor používá rozšíření systému KConfig o~deklarace klíčů pomocí systému KConfigXT. Ten je zpravidla používán k~vygenerování dialogů pro nastavení programů. V~souboru KConfigXT se uvede jaké klíče z~konfigurace program používá a~také jejich typ. Navíc se tyto soubory instalují společně s~programy -- lze jich tedy využít v~editoru nastavení. Integrace tohoto nástroje a~rozšíření a~oprava KConfigXT souborů by pak vedly k~vcelku elegantnímu řešení problému úpravy profilů.
+Změny v~profilech samotných by bylo dobré provádět způsobem podobným jako využívá nástroj KConfigEditor. Ten vypadá zhruba takto jako na tomto obrázku: \ref{fig:kconfeditor}. KConfigEditor používá rozšíření systému KConfig o~deklarace klíčů pomocí systému KConfigXT. Ten je zpravidla používán k~vygenerování dialogů pro nastavení programů. V~souboru KConfigXT se uvede jaké klíče z~konfigurace program používá a~také jejich typ. Navíc se tyto soubory instalují společně s~programy -- lze jich tedy využít v~editoru nastavení. Integrace tohoto nástroje a~rozšíření a~oprava KConfigXT souborů by pak vedly k~vcelku elegantnímu řešení problému úpravy profilů.
 
 \begin{figure}[h]
     \centering
@@ -625,8 +627,8 @@ V~příloze B jsou informace o~umístění zdrojových kódů, obsahu přiložen
 \item[PolicyKit Local Authority] je výchozí implementace PolicyKit autority. Používá textové soubory.
 \item[polkit-qt] je soubor knihoven obalující PolicyKit.
 \item[polkit-kde] je nadstavba nad polkit-qt pro prostředí KDE. Implementuje autentizačního agenta a~KControl modul pro práci s~autorizacemi.
-\item[polkitd] je systémová služba PolicyKitu a~implementuje tzv. PolicyKit autoritu.
-\item[Qt] je balík knihoven v~jazyce C++.
+\item[polkitd] je systémová služba PolicyKitu a~implementuje PolicyKit autoritu.
+\item[Qt] je balík knihoven v~jazyce C++, které jsou použity jak základ pro KDE SC.
 \item[QtDesigner] je program pro vizuální návrh uživatelského rozhraní programů na bázi Qt knihoven.
 \end{description}
 %=========================================================================
