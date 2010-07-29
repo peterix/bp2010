@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Bouml (http://bouml.free.fr/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="454.5"
+   height="339.70764"
+   version="1.1"
+   id="svg2"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="KAuthAction.pdf">
+  <metadata
+     id="metadata150">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs148">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 277.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="771 : 277.5 : 1"
+       inkscape:persp3d-origin="385.5 : 185 : 1"
+       id="perspective152" />
+  </defs>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1588"
+     inkscape:window-height="1032"
+     id="namedview146"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:zoom="0.60135928"
+     inkscape:cx="82"
+     inkscape:cy="193.15678"
+     inkscape:window-x="-4"
+     inkscape:window-y="-3"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2">
+    <sodipodi:guide
+       orientation="0,1"
+       position="188.59216,45"
+       id="guide2958" />
+  </sodipodi:namedview>
+  <g
+     id="g4"
+     transform="translate(-303.5,-201.29237)">
+    <rect
+       x="435"
+       y="501"
+       width="4"
+       height="40"
+       id="rect6"
+       style="fill:#808080;stroke:none" />
+    <rect
+       x="309"
+       y="537"
+       width="130"
+       height="4"
+       id="rect8"
+       style="fill:#808080;stroke:none" />
+    <rect
+       x="304"
+       y="496"
+       width="131"
+       height="41"
+       id="rect10"
+       style="fill:#ffffc0;stroke:#000000;stroke-width:1;stroke-opacity:1" />
+    <text
+       font-size="13"
+       xml:space="preserve"
+       font-weight="bold"
+       x="370"
+       y="511"
+       id="text12"
+       style="font-size:13px;font-weight:bold;text-anchor:middle;fill:#000000;font-family:Helvetica">Polkit1Backend</text>
+    <line
+       x1="304"
+       y1="518"
+       x2="435"
+       y2="518"
+       id="line14"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="304"
+       y1="527"
+       x2="435"
+       y2="527"
+       id="line16"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g18"
+     transform="translate(-303.5,-201.5)">
+    <rect
+       x="652"
+       y="367"
+       width="4"
+       height="47"
+       id="rect20"
+       style="fill:#808080;stroke:none" />
+    <rect
+       x="446"
+       y="410"
+       width="210"
+       height="4"
+       id="rect22"
+       style="fill:#808080;stroke:none" />
+    <rect
+       x="441"
+       y="362"
+       width="211"
+       height="48"
+       id="rect24"
+       style="fill:#ffffc0;stroke:#000000;stroke-width:1;stroke-opacity:1" />
+    <text
+       font-size="13"
+       xml:space="preserve"
+       font-weight="bold"
+       x="547"
+       y="377"
+       id="text26"
+       style="font-size:13px;font-weight:bold;text-anchor:middle;fill:#000000;font-family:Helvetica">AuthBackend</text>
+    <line
+       x1="441"
+       y1="384"
+       x2="652"
+       y2="384"
+       id="line28"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="441"
+       y1="393"
+       x2="652"
+       y2="393"
+       id="line30"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g32"
+     transform="translate(-303.5,-201.5)">
+    <rect
+       x="642"
+       y="207"
+       width="4"
+       height="126"
+       id="rect34"
+       style="fill:#808080;stroke:none" />
+    <rect
+       x="454"
+       y="329"
+       width="192"
+       height="4"
+       id="rect36"
+       style="fill:#808080;stroke:none" />
+    <rect
+       x="449"
+       y="202"
+       width="193"
+       height="127"
+       id="rect38"
+       style="fill:#ffffc0;stroke:#000000;stroke-width:1;stroke-opacity:1" />
+    <text
+       font-size="13"
+       xml:space="preserve"
+       font-weight="bold"
+       x="546"
+       y="217"
+       id="text40"
+       style="font-size:13px;font-weight:bold;text-anchor:middle;fill:#000000;font-family:Helvetica">Action</text>
+    <line
+       x1="449"
+       y1="224"
+       x2="642"
+       y2="224"
+       id="line42"
+       style="stroke:#000000;stroke-opacity:1" />
+    <text
+       font-size="13"
+       xml:space="preserve"
+       x="454"
+       y="239"
+       id="text44"
+       style="font-size:13px;fill:#000000;font-family:Helvetica">name : QString</text>
+    <line
+       x1="449"
+       y1="246"
+       x2="642"
+       y2="246"
+       id="line46"
+       style="stroke:#000000;stroke-opacity:1" />
+    <text
+       font-size="13"
+       xml:space="preserve"
+       x="454"
+       y="261"
+       id="text48"
+       style="font-size:13px;fill:#000000;font-family:Helvetica">Action(in name : QString)</text>
+    <text
+       font-size="13"
+       xml:space="preserve"
+       x="454"
+       y="281"
+       id="text50"
+       style="font-size:13px;fill:#000000;font-family:Helvetica">status() : AuthStatus</text>
+    <text
+       font-size="13"
+       xml:space="preserve"
+       x="454"
+       y="301"
+       id="text52"
+       style="font-size:13px;fill:#000000;font-family:Helvetica">authorize() : AuthStatus</text>
+    <text
+       font-size="13"
+       xml:space="preserve"
+       x="454"
+       y="321"
+       id="text54"
+       style="font-size:13px;fill:#000000;font-family:Helvetica">execute() : ActionReply</text>
+  </g>
+  <g
+     id="g56"
+     transform="translate(-303.5,-202.29237)">
+    <rect
+       x="630"
+       y="502"
+       width="4"
+       height="40"
+       id="rect58"
+       style="fill:#808080;stroke:none" />
+    <rect
+       x="452"
+       y="538"
+       width="182"
+       height="4"
+       id="rect60"
+       style="fill:#808080;stroke:none" />
+    <rect
+       x="447"
+       y="497"
+       width="183"
+       height="41"
+       id="rect62"
+       style="fill:#ffffc0;stroke:#000000;stroke-width:1;stroke-opacity:1" />
+    <text
+       font-size="13"
+       xml:space="preserve"
+       font-weight="bold"
+       x="539"
+       y="512"
+       id="text64"
+       style="font-size:13px;font-weight:bold;text-anchor:middle;fill:#000000;font-family:Helvetica">AuthServicesBackend</text>
+    <line
+       x1="447"
+       y1="519"
+       x2="630"
+       y2="519"
+       id="line66"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="447"
+       y1="528"
+       x2="630"
+       y2="528"
+       id="line68"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g70"
+     transform="translate(-303.5,-202.29237)">
+    <rect
+       x="754"
+       y="502"
+       width="4"
+       height="40"
+       id="rect72"
+       style="fill:#808080;stroke:none" />
+    <rect
+       x="644"
+       y="538"
+       width="114"
+       height="4"
+       id="rect74"
+       style="fill:#808080;stroke:none" />
+    <rect
+       x="639"
+       y="497"
+       width="115"
+       height="41"
+       id="rect76"
+       style="fill:#ffffc0;stroke:#000000;stroke-width:1;stroke-opacity:1" />
+    <text
+       font-size="13"
+       xml:space="preserve"
+       font-weight="bold"
+       x="697"
+       y="512"
+       id="text78"
+       style="font-size:13px;font-weight:bold;text-anchor:middle;fill:#000000;font-family:Helvetica">FakeBackend</text>
+    <line
+       x1="639"
+       y1="519"
+       x2="754"
+       y2="519"
+       id="line80"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="639"
+       y1="528"
+       x2="754"
+       y2="528"
+       id="line82"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g84"
+     transform="translate(-303.5,-201.5)">
+    <line
+       x1="371"
+       y1="495"
+       x2="371"
+       y2="470"
+       id="line86"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g88"
+     transform="translate(-303.5,-201.5)">
+    <line
+       x1="540"
+       y1="496"
+       x2="540"
+       y2="470"
+       id="line90"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g92"
+     transform="translate(-303.5,-201.5)">
+    <line
+       x1="699"
+       y1="496"
+       x2="699"
+       y2="470"
+       id="line94"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g96"
+     transform="translate(-303.5,-201.5)">
+    <line
+       x1="548"
+       y1="361"
+       x2="554"
+       y2="355"
+       id="line98"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="548"
+       y1="361"
+       x2="542"
+       y2="355"
+       id="line100"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="548"
+       y1="334"
+       x2="548"
+       y2="361"
+       id="line102"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g104"
+     transform="translate(-303.5,-201.5)">
+    <line
+       x1="699"
+       y1="470"
+       x2="560"
+       y2="470"
+       id="line106"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g108"
+     transform="translate(-303.5,-201.5)">
+    <line
+       x1="495"
+       y1="470"
+       x2="495"
+       y2="420"
+       id="line110"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="496"
+       y1="415"
+       x2="489"
+       y2="420"
+       id="line112"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="496"
+       y1="415"
+       x2="501"
+       y2="421"
+       id="line114"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="489"
+       y1="420"
+       x2="501"
+       y2="421"
+       id="line116"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g118"
+     transform="translate(-303.5,-201.5)">
+    <line
+       x1="371"
+       y1="470"
+       x2="495"
+       y2="470"
+       id="line120"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g122"
+     transform="translate(-303.5,-201.5)">
+    <line
+       x1="523"
+       y1="470"
+       x2="523"
+       y2="421"
+       id="line124"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="523"
+       y1="415"
+       x2="517"
+       y2="421"
+       id="line126"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="523"
+       y1="415"
+       x2="529"
+       y2="421"
+       id="line128"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="517"
+       y1="421"
+       x2="529"
+       y2="421"
+       id="line130"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g132"
+     transform="translate(-303.5,-201.5)">
+    <line
+       x1="540"
+       y1="470"
+       x2="523"
+       y2="470"
+       id="line134"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+  <g
+     id="g136"
+     transform="translate(-303.5,-201.5)">
+    <line
+       x1="560"
+       y1="470"
+       x2="560"
+       y2="421"
+       id="line138"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="560"
+       y1="415"
+       x2="554"
+       y2="421"
+       id="line140"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="560"
+       y1="415"
+       x2="566"
+       y2="421"
+       id="line142"
+       style="stroke:#000000;stroke-opacity:1" />
+    <line
+       x1="554"
+       y1="421"
+       x2="566"
+       y2="421"
+       id="line144"
+       style="stroke:#000000;stroke-opacity:1" />
+  </g>
+</svg>

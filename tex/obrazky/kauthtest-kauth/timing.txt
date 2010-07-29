@@ -1,0 +1,10 @@
+profile "test" looked up 
+profile "test" looked up 
+Yestest passed 
+Notest passed 
+Admintest passed 
+Invalidtest passed 
+
+real    0m1.385s
+user    0m0.063s
+sys     0m0.013s
