@@ -41,6 +41,8 @@ V~moderních operačních systémech určených pro desktop (pracovní stanice, 
 Bezpečnostní politiky zahrnují požadavky na operační systém a to jak z pohledu napadení systámu z vnějšku, tak i z pohledu zabezpečení systému před lokálním uživatelem. Tato práce se zabýva predevším bezpečnostními politikami pro lokálni uzivatele. To zahrnuje jednak možnosti omezení chováni uživatelů na firemní síti, ale také domáci použití známe jako rodičovský režim.
 V případě firemního počítače se může jednat například o~uzamčení jedné konkrétní konfigurace, aby ji zaměstnanci nemohli měnit. U rodičovského módu se může jednat o omezení přístupu k počítači na určitý čas, nebo omezení přístupu k některým webovým serverům. Práce se bude zabývat příbuzným tématem: expermimentální integrací dvou rozhraní určených právě pro takovéto využití a~opravou grafického nástroje pro nastavení jednoho z~nich.
 
+%%%%%
+
 MS Windows postupně získal mnohem lepší zabezpečení ve verzích NT, kdy došlo k~přechodu na nové jádro, a~Vista, kde se poprvé objevila možnost jednoduše povolit obyčejnému uživateli přístup k~nastavení systému pomocí UAC\footnote{User Access Control}. Zamezilo se tak nutnosti \uv{být administrátorem}, což bylo do té doby výchozí nastavení po intalaci. Ve výsledku má uživatel povoleny akce, ke kterým by jinak přístup neměl.
 
 Unixové a~unixu podobné systémy se vyvíjely směrem opačným. Od práv pevně svázaných s~jeho účtem a~skupinou, k~mnohem volnějšímu pojetí. Za zmínku stojí například program sudo, který umožňuje uživateli spouštět programy s~jinými právy než jsou jeho vlastní (převážně superuživatelská práva) případně program su, který je ještě staršího data. Nově je k~dispozici také PolicyKit, který alespoň z pohledu uživatele plní podobnou úlohu jako UAC na OS Windows. Aplikace využívající PolicyKit nemusejí mít pro změnu systémového nastavení jako je třeba datum a~čas superuživatelská práva.
@@ -49,59 +51,47 @@ Unixové a~unixu podobné systémy se vyvíjely směrem opačným. Od práv pevn
 
 Původně byl všechen software KDE součástí jedné velké kolekce základních utilit pod názvem \uv{K Desktop Environment}. Protože byly všechny programy a knihovny součástí této jedné kolekce, stačilo ji vydávat pod jednotným názvem synchronizovaně. Jak tým KDE a počet aplikací rostl, mnoho z těchto programů začalo využívat své vlastní vývojové cykly a oddělily se od původní kolekce.
 
-KDE Software Compilation (dále KDE SC) je množina knihoven a programů vytvářených komunitou KDE, které stále používají původní synchronizovaný vývojový cyklus a vytvářejí tak základ pro uživatelsky přívětivé  grafické prostředí dostupné pro operační systémy Linux, Windows a Mac OSX.
+KDE Software Compilation (dále KDE SC) je množina knihoven a programů vytvářených komunitou KDE, které stále používají původní synchronizovaný vývojový cyklus a vytvářejí tak základ pro uživatelsky přívětivé grafické prostředí dostupné hlavně pro operační systém Linux, ale pracuje se i~na verzích pro Windows a Mac OSX.
 
-KDE SC sestává z knihoven KDE-Libs, které tvoří podklad pro všechny programy KDE a mnoha balíků softwaru. KDEBase je balík základních programů KDE a obsahuje mimo jiné i plochu Plasma a prohlížeč souboroveho systému Dolphin (má podobný účel jako program Explorer ve Windows). Součástí KDE je mnoho dalších balíků softwaru.
+KDE SC sestává z knihoven KDE-Libs, které tvoří podklad pro všechny programy KDE a mnoha balíků softwaru. KDEBase je balík základních programů KDE a~obsahuje mimo jiné i~plochu Plasma a~prohlížeč souborového systému Dolphin (má podobný účel jako program Explorer ve Windows). Součástí KDE je mnoho dalších balíků softwaru.
 
-Zvláštní zmínku si zaslouží repozitáře extragear a kdereview. Extragear obsahuje programy a knihovny nesynchronizované s vývojovým cyklem KDE SC. Kdereview pak software, který je zvažován pro začlenění do některého z balíků KDE SC.
+Prostředí KDE (po přeznačení KDE Software Compilation) je možné provozovat na více operačních systémech. Aplikace by tak musely používat řešení jako je UAC nebo PolicyKit, což by omezilo jejich přenositelnost. Tyto řešení tedy bylo potřeba nějak obalit. Za tímto účelem vzniklo rozhraní KAuth.\cite{whatiskde}
 
-kdereview: http://websvn.kde.org/trunk/kdereview/
-extragear: http://extragear.kde.org/
-
-CITACE: http://www.kde.org/community/whatiskde/softwarecompilation.php
-
-Prostředí KDE (po přeznačení KDE Software Compilation) je možné provozovat na více operačních systémech. Aplikace by tak musely používat řešení jako je UAC nebo PolicyKit, což by omezilo jejich přenositelnost. Tyto řešení tedy bylo potřeba nějak obalit. Za tímto účelem vzniklo rozhraní KAuth.
+%%%% 
 
 V~rámci KDE však bylo možné již dříve měnit práva uživatelů -- skrývat položky menu, zamezit použití terminálu a~podobně. K~tomu slouží Kiosk, což je rozhraní nad konfiguračním systémem KDE KConfig.
 
-Práce se z~velké části zabývá knihovnami v balíku KDE-Libs a rozhraními Kiosk a KAuth. Obě rozhraní slouží k autorizaci akcí, které jsou v~rámci určité aplikace proveditelné uživatelem. Administrátor může použitím těchto rozhraní takovéto akce povolit nebo zakázat. Kiosk je starší rozhraní, postavené nad konfiguračním rozhraním KConfig a má některá další specifika jako jsou zdroje dat nebo povolování přístupu~k adresám URL. Zdroji dat rozumíme určitý typ souborů používaný v aplikacích KDE. Například omezením pozadí na plochu, které se řadí mezi zdroje dat (alespoň teoreticky) zamezíme tomu, aby uživatel mohl měnit pozadí plochy na jiné, než instalované v systému. KAuth je novějšího data a~je narozdíl od Kiosku schopen také tyto akce provádět spouštěním pomocných programů s~jinými právy, než má jeho uživatel.
+Práce se z~velké části zabývá knihovnami v~balíku KDE-Libs a~rozhraními Kiosk a KAuth. Obě rozhraní slouží k~autorizaci akcí, které jsou v~rámci určité aplikace proveditelné uživatelem. Administrátor může použitím těchto rozhraní takovéto akce povolit nebo zakázat. Kiosk je starší, postavený nad konfiguračním rozhraním KConfig a~má některá další specifika jako jsou zdroje dat nebo povolování přístupu~k adresám URL. Zdroji dat rozumíme určitý typ souborů používaný v~aplikacích KDE. Například omezením pozadí na plochu, které se řadí mezi zdroje dat (alespoň teoreticky) zamezíme tomu, aby uživatel mohl měnit pozadí plochy na jiné, než instalované v systému. KAuth je novějšího data a~je narozdíl od Kiosku schopen také tyto akce provádět spouštěním pomocných programů s~jinými právy, než má jeho uživatel.
 
-Společně s nutnými základy bezpečnosti v systému linux jsou tyto technologie a~způsob jakým budou v~práci využity blíže popsány ve druhé kapitole. Hlavním cílem práce je integrovat KAuth do Kiosku, aby mohl být používán pro ukládání povolení akcí a přístupu ke zdrojům dat. Třetí kapitola integraci popisuje a dále se zabývá implementací nástroje pro migraci dat a~také pojednává o~testování systému jako celku. Další částí práce je dokončení portu (přenesení) konfiguračního nástroje KioskTool z prostředí KDE3 do prostředí KDE SC 4. Tímto se zabývá kapitola čtvrtá. Pátá kapitola práci uzavírá a~navrhuje další možný postup.
+Společně s~nutnými základy bezpečnosti v~systému linux jsou tyto technologie a~způsob jakým budou v~práci využity blíže popsány ve druhé kapitole. Hlavním cílem práce je integrovat KAuth do Kiosku, aby mohl být používán pro ukládání povolení akcí a~přístupu ke zdrojům dat. Třetí kapitola integraci popisuje a~dále se zabývá implementací nástroje pro migraci dat a~také pojednává o~testování systému jako celku. Další částí práce je dokončení portu (přenesení) konfiguračního nástroje KioskTool z prostředí KDE3 do prostředí KDE SC 4. Tímto se zabývá kapitola čtvrtá. Pátá kapitola práci uzavírá a~navrhuje další možný postup.
 
 \chapter{Použité technologie}
 Tato kapitola se zabývá popisem technologií použitých dále. Jedná se zejména o~nástroje pro řízení přístupu \emph{subjektů} k~\emph{prostředkům} systému v~rámci uživatelského prostoru systému Linux. Subjektem mohou být například procesy, uživatelé nebo skupiny uživatelů. Prostředky pak mohou být soubory a~adresáře, zařízení (speciální typ souborů), čísla TCP a~UDP portů, nebo zmíněné akce autorizačních rozhraní Kiosk a~KAuth.
 
 Uživatelé se do systému přihlašují, přičemž dochází k~ověření jejich identity, autentizaci. V~systému Linux lze řešit přihlašování pomocí mechanismu PAM\footnote{Pluggable Authentication Modules}. Ten umožňuje psát programy vyžadující autentizaci nazávisle na způsobu jakým je jí dosaženo. Nezáleží pak, jestli se uživatel přihlašuje heslem nebo například otiskem prstu. Další způsoby autentizace je možné do systému doplnit pomocí zásuvných modulů. Podrobnější popis lze nalézt například v~článku, který vyšel na Root.cz\cite{rootpam}. Pokud je to vyžadováno, KAuth využívá mechanismu PAM k~ověření totožnosti uživatele.
 
-SEZNAM CITACE KAPITOLY SEM. První část kapitoly se zabývá přístupem subjektů k souborům~a procesům. Je zde čerpáno z dokumentu REF, který je vhodný pro hlubší studium problematiky a~REF, který je obecněším úvodem. Část pojednávající o~Kiosku čerpá z z~úvodu do Kiosku \cite{Kioskintro} a~zdrojového kódu kdelibs CITACE!. Část o~KAuth čerpá z~REF REF REF, v~části o~PolicyKitu je čerpáno z~REF REF REF. Dříve než se pustíme do samotného popisu technologií by bylo dobré prostudovat přílohu~A. Ta vymezuje některé z~často používaných pojmů.
+První část kapitoly se zabývá přístupem subjektů k souborům~a procesům. Je zde čerpáno z dokumentu \cite{secureProg}, který je vhodný pro hlubší studium problematiky a~knihy~\cite{OSP}, která je obecněším úvodem. Část pojednávající o~Kiosku čerpá z z~úvodu do Kiosku \cite{Kioskintro} a~zdrojového kódu kdelibs \cite{codeKdeLibs}. Část o~KAuth čerpá z~\cite{codeKAuth,KAuthusage}, v~části o~PolicyKitu je čerpáno z~\cite{manpolkit_overview, manpolkit1, manpklocalauth}. Dříve než se pustíme do samotného popisu technologií by bylo dobré prostudovat přílohu~\nameref{pojmySeznam}. Ta vymezuje některé z~často používaných pojmů.
 
 \section{Souborový systém a řízení přístupu k souborům}
-ZDE CITOVAT ODSTAVCE NA KONCI, TERMÍNY
 Unixu podobné operační systémy mají tzv. virtuální systém souborů, kde jsou všechny soubory na všech připojených souborových systémech umístěny v~jedné hierarchii. Tato hierarchie souborů a adresářů má jeden kořenový adresář \uv{/}. Adresáře obsahují soubory a~platí, že adresář je speciálním typem souboru (existují také další speciální soubory pro zařízení). Adresáře dále obsahují dvě speciální položky: \uv{..} odkazující na adresář o~úroveň výše a~\uv{.} odkazující na adresář samotný (identita).
 
 V hierarchii mohou být dále symbolické a~pevné odkazy. Symbolické odkazy mohou odkazovat jak na soubory, tak na adresáře. Při smazání odkazovaného souboru nebo adresáře symbolický odkaz zůstáva. Pevné odkazy pak mohou být pouze na soubory. Takto odkazovaný soubor je smazán společně s posledním pevným odkazem na něj.
 
-Ke každému souboru a adresáři jsou přiřazena metadata, která popisují jejich další vlastnosti. Z~hlediska řízení přístupu je podstatný uživatel a skupina vlastnící soubor, práva pro čtení (r), zápis (w) a~spuštění (x) uživatelem, skupinou a ostatními subjekty a~tzv. setuid a setgid bity. U~obyčejných souborů označuje právo pro spuštění to, že je to spustitelný program nebo skript. U adresářů spustitelnost označuje fakt, že je možné vypsat jejich obsah.
+Ke každému souboru a adresáři jsou přiřazena metadata, která popisují jejich další vlastnosti. Z~hlediska řízení přístupu je podstatný uživatel a skupina vlastnící soubor, práva pro čtení (r), zápis (w) a~spuštění (x) uživatelem, skupinou a ostatními subjekty a~tzv. setuid a setgid bity. U~obyčejných souborů označuje právo pro spuštění to, že je to spustitelný program nebo skript. U adresářů spustitelnost označuje fakt, že je možné vypsat jejich obsah.\cite{secureProg, OSP}
 
-CITACE: L.F. Bic, A.C. Shaw, Operating Systems Principles, Pearson Education, ISBN 0-13-122455-7, 2003.
-CITACE: http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO.pdf
+Setuid bit určuje, že spuštěný program má běžet pod účtem vlastníka souboru. Setgid znamená to stejné pro skupiny. Bez nastavených setuid a~setgid bitů je program spuštěn pod účtem uživatele, který jej spouští.\cite{secureProg}
 
-Setuid bit určuje, že spuštěný program má běžet pod účtem vlastníka souboru. Setgid znamená to stejné pro skupiny. Bez nastavených setuid a~setgid bitů je program spuštěn pod účtem uživatele, který jej spouští.
-
-CITACE: http://www.dwheeler.com/secure-programs/Secure-Programs-HOWTO.pdf
-
-\section{Procesy a přístup k jejich prostředkům}
-TODO: Něco o tom, jak UID a GID funguji u procesu, jaky to ma vliv na pristup uzivatelum k pameti procesu, debugging a podobne.
+%\section{Procesy a přístup k jejich prostředkům}
+%TODO: Něco o tom, jak UID a GID funguji u procesu, jaky to ma vliv na pristup uzivatelum k pameti procesu, debugging a podobne.
 
 \section{Kiosk}
 Z~pohledu administrátora Kiosk nabízí možnost upravit si KDE pro své vlastní účely. Například schovat některé položky v~grafickém rozhraní aplikací, znemožnit uživatelům měnit nastavení a~data aplikací nebo zamezit spuštění terminálu. Z pohledu programátora je to jednoduché rozhraní umožňující autorizaci akcí.
 
 Kiosk je vlastně souhrnný pojem pro určité vlastnosti konfiguračního systému KConfig, jeho způsob načítání konfigurace z tzv. Kiosk profilů, rozhraní KAuthorized a specifikace, jakým způsobem jsou autorizace akcí uloženy v KConfigu. Nelze přesně určit jedno konkrétní místo ve zdrojovém kódu KDE, kde by bylo popsáno jakým způsobem funguje, ale podrobným zkoumáním lze vysledovat, jak je docíleno výsledného efektu.
-
-Obrázek: architektura Kiosk, Kconfig
+%Obrázek: architektura Kiosk, Kconfig
 
 \subsection*{KConfig}
-Kconfig je v Kioksu použit pro uložení informace o tom, ke kterým akcím a jiným zdrojům má uživatel povoleno přistupovat. Konfigurace je uložena v~souborech podobných .INI souborům se kterými se dá jednoduše pracovat. Na rozdíl od klasických INI souborů jsou však rozšířeny o některé další vlastnosti. REF: http://en.wikipedia.org/wiki/INI\_file
+Kconfig je v Kioksu použit pro uložení informace o tom, ke kterým akcím a jiným zdrojům má uživatel povoleno přistupovat. Konfigurace je uložena v~souborech podobných .INI souborům se kterými se dá jednoduše pracovat. Na rozdíl od klasických INI souborů jsou však rozšířeny o některé další vlastnosti.\cite{wikiINIfiles}
 \begin{mylisting}
 \caption{Ukázka konfiguračního souboru KConfig}
 \label{kconf_exmpl}
@@ -130,8 +120,6 @@ Je zřejmé, že řešení s~pouze jedním umístěním pro globální konfigura
 
 \subsection*{Načítání konfigurace během spuštění aplikace}
 Každá KDE aplikace má několik částí, obsažených ve jmenném prostoru \cppc{KGlobal}. Diagram~\ref{fig:kglobal} ukazuje, jak je jmenný prostor \cppc{KGlobal} členěn. Obaluje přístup k~dalším komponentám a~sdíleným zdrojům v~rámci aplikace. \cppc{KComponentData} obsahuje informace relevantní pro jednu komponentu aplikace. Platí, že aplikace může mít jednu hlavní komponentu. \cppc{KAboutData} je soubor základních informací o~programu. V~případě hlavní komponenty jsou tyto informace použity také pro dialog \uv{O~Aplikaci} (About). \cppc{KAboutData} určuje název komponenty a ten se použije pro načítání konfigurace a~pro výběr složky s~daty aplikace. Aplikace může mít více než jednu komponentu. \cppc{KSharedConfig} obsahuje sloučenou konfiguraci efektivní pro program a~zajišťuje, že konfigurace je sdílena mezi komponentami. Šetří se tak pamětí a~časem nutným k~načtení konfigurace. \cppc{KStandardDirs} slouží k~určení, které složky budou použity jako zdroj dat a~konfigurace pro aplikaci.
-
-REF: http://api.kde.org/4.x-api/kdelibs/kdecore/namespaceKGlobal.html
 
 \begin{figure}[h]
     \centering
@@ -205,7 +193,8 @@ Poslední položkou skupiny je \cppc{Persistence}. Ta je nepovinná a~udává, n
 Specifikace akcí v~.actions souborech je také dále omezená tím, že všechny názvy akcí v jednom souboru musejí mít společný základ (jmenný prostor).
 
 \subsection*{Rozhraní KAuth}
-KAuth poskytuje jednoduché rozhraní pro práci s akcemi. Jeho základem je třída \cppc{KAuth::Action}, kterou lze využít pro autorizaci akcí a spouštění KAuth pomocníku. Funguje jako rozhraní nad jednotlivými autorizačními systémy a~používá je prostřednictvím zásuvných modulů založených na třídě \cppc{KAuth::AuthBackend}. Vztah mezi těmito třídami je znázorněn na diagramu \ref{fig:KAuthDiag}. Akce přijímá jako parametr konstruktoru jméno. K autorizaci pak slouží její jednotlivé metody. Diagram byl zjednodušen, celou dokumentaci k rozhraní KAuth lze nalézt na stránkách KDE. CITACE http://api.kde.org/4.x-api/kdelibs-apidocs/kdecore/namespaceKAuth.html
+KAuth poskytuje jednoduché rozhraní pro práci s akcemi. Jeho základem je třída \cppc{KAuth::Action}, kterou lze využít pro autorizaci akcí a spouštění KAuth pomocníku. Funguje jako rozhraní nad jednotlivými autorizačními systémy a~používá je prostřednictvím zásuvných modulů založených na třídě \cppc{KAuth::AuthBackend}. Vztah mezi těmito třídami je znázorněn na diagramu \ref{fig:KAuthDiag}. Akce přijímá jako parametr konstruktoru jméno. K autorizaci pak slouží její jednotlivé metody. Diagram byl zjednodušen, celou dokumentaci k rozhraní KAuth lze nalézt na stránkách KDE.\cite{KAuthusage, KAuthAPI}
+
 
 \begin{figure}[h]
     \centering
@@ -335,7 +324,7 @@ Druhá možná varianta je jednoduše se vzdát mapování akcí mezi Kioskem a~
 
 Nezíská se tím vůbec výhoda z~pohledu bezpečnosti. Kiosk profily musejí stále zůstat čitelné pro všechny uživatele, jinak by se při spuštění programů nemohly načíst a~části které nebudou takto integrovány v~pomocníkovi (vše s~výjimkou omezení akcí a~zdrojů) by tím byly zcela neefektivní. Odpadá tak výhoda KAuthu, kde jak seznam omezení, tak jaká omezení pro koho platí může být před uživateli skryt. Při použití PolicyKit Local Authority je možné nastavit všechny soubory čitelné jenom superuživatelem (dokonce je to výchozí stav).
 
-Za druhé -- KAuth pomocníci mají omezenou životnost. Pokud nejsou využíváni po dobu deseti vteřin, jsou ukončeni (viz. zdrojový kód KAuth ADD REF!!). Znamená to znovu načíst celý KConfig objekt. I~když je toto načítání vysoce optimalizováno, stále je vcelku zbytečné načítat celou konfiguraci dvakrát. Jednou v~programu, který by volal KAuthorized a~podruhé v~KAuth pomocníkovi. Sdílet zde jeden konfigurační objekt by bylo zbytečně komplikované, protože se jedná o~dva procesy, navíc spuštěné s~jinými právy.
+KAuth pomocníci mají omezenou životnost. Pokud nejsou využíváni po dobu deseti vteřin, jsou ukončeni (viz. zdrojový kód KAuth \cite{codeKAuth}). Znamená to znovu načíst celý KConfig objekt. I~když je toto načítání vysoce optimalizováno, stále je vcelku zbytečné načítat celou konfiguraci dvakrát. Jednou v~programu, který by volal KAuthorized a~podruhé v~KAuth pomocníkovi. Sdílet zde jeden konfigurační objekt by bylo zbytečně komplikované, protože se jedná o~dva procesy, navíc spuštěné s~jinými právy.
 
 Jedna z~vlastností KAuthu, kterou by se také nedalo využít jsou srozumitelné názvy akcí v~systému. Místo \cppc{org.kde.kiosk.action.help} a~mnoha dalších by byly v~systému jen akce pomocníka. V~tom případě se ovšem nedá mluvit o~integraci KAuthu a~KAuthorized.
 
@@ -395,7 +384,7 @@ Problémem řešení je zejména nemožnost reprezentace vlastnosti nezměniteln
 
 % svn://svn.kde.org/home/kde/trunk/extragear/base/polkit-kde-1/
 \subsection*{Integrace KAuth do KAuthorized}
-KAuth nabízí několik možností, jak autorizovat akci. V~zásadě se jedná o~různé metody třídy \cppc{KAuth::Action}, mající mírně odlišný význam. Prvním metodou je \cppc{execute()}. Tato metoda je uvedena v~příkladu \cite{Kauth-usage} a~je určena pro jednorázové blokující provedení akce. Pokud je to potřeba, uživatel je požádán o~autentizaci. Metoda má podle \cite{Kauth-usage} fungovat i bez přítomnosti pomocníka. \cppc{execute()} má také asynchronní verzi.
+KAuth nabízí několik možností, jak autorizovat akci. V~zásadě se jedná o~různé metody třídy \cppc{KAuth::Action}, mající mírně odlišný význam. Prvním metodou je \cppc{execute()}. Tato metoda je uvedena v~příkladu \cite{KAuthusage} a~je určena pro jednorázové blokující provedení akce. Pokud je to potřeba, uživatel je požádán o~autentizaci. Metoda má podle \cite{KAuthusage} fungovat i bez přítomnosti pomocníka. \cppc{execute()} má také asynchronní verzi.
 
 Další metodou je \cppc{authorize()}. Tato metoda je určena pro získání autorizace pro akce před tím, než by byla akce provedena. Má být používána ostatními metodami třídy \cppc{KAuth::Action}.  Metoda podobně jako \cppc{execute()} může od uživatele vyžadovat autentizaci. Třetí metodou je \cppc{status()}. Tato metoda je podobná \cppc{execute()}, ale v~případech, kdy by byla vyžadována autentizace pouze o~této skutečnosti informuje.
 
@@ -406,14 +395,15 @@ Téměř okamžitě po implementaci jsem narazil na první problém. Program, kt
 
 Pro zjištění kde je chyba jsem vytvořil jednoduchý test kauthDoS. Ten v~nekonečném cyklu volá \cppc{KAuth::Action::status()} a~v~pravidelných intervalech vypisuje hlášení. Když program přestane vypisovat, znamená to, že došlo k~chybě. Zdrojový kód nástroje je v~\cppc{kdelibs/kdecore/auth/kauthDoS.cpp}.
 
-Démon polkitd a~program kauthDoS byly spuštěny v~debuggeru gdb a~byly získány \uv{backtrace} z~obou programů (výpisy v přílohách \ref{btrac1} a~\ref{btrac2}). Problém vzniká během komunikace jednotlivých částí PolicyKitu. Chybu jsem ohlásil jeho autorovi (David Zeuthen) v~mailing listu PolicyKitu !!!!!REF!!!!! a~nedočkal se odpověďi, i~když je tento mailing list uveden jako místo kam se mají chyby PolicyKitu hlásit.
+Démon polkitd a~program kauthDoS byly spuštěny v~debuggeru gdb a~byly získány \uv{backtrace} z~obou programů (výpisy v přílohách \ref{btrac1} a~\ref{btrac2}). Problém vzniká během komunikace jednotlivých částí PolicyKitu. Chybu jsem ohlásil jeho autorovi (David Zeuthen) v~mailing listu PolicyKitu \cite{bugrepmailinglist} a~nedočkal se odpověďi, i~když je tento mailing list uveden jako místo kam se mají chyby PolicyKitu hlásit.
 
 Provedl jsem tedy druhý pokus o nahlášení chyby a přitom implementoval test podobný KAuthDoS, ale závisející pouze na PolicyKitu.
-Chyba byla hlášena do bugtrackeru PolicyKitu !!!!REF!!!!, ale setkala se s nepochopením ze strany autora.
+Chyba byla hlášena do bugtrackeru PolicyKitu \cite{bugreptracker}, ale setkala se s nepochopením ze strany autora.
+
 
 Jako dočasné řešení jsem do implementace v~rozhraní KAuthorized přidal test na proměnnou prostředí \cppc{KDE_KIOSK_USE_KAUTH}. Pokud je nastavena na \cppc{YES}, použije se jako zdroj autorizací KAuth, jinak se použije KConfig.
 
-Při hledání chyby jsem narazil na druhý problém v PolicyKitu, kdy každý požadavek na autorizaci způsoboval zahození celé databáze autorizací a jeji opětovné načtení z konfiguračních souborů. Tato chyba byla opravena, viz bugtracker: !!!!!REF!!!!!.
+Při hledání chyby jsem narazil na druhý problém v PolicyKitu, kdy každý požadavek na autorizaci způsoboval zahození celé databáze autorizací a jeji opětovné načtení z konfiguračních souborů. Tato chyba byla opravena, viz bugtracker: \cite{smallbugrep}.
 
 \subsection*{Testování implementace}
 K testování implementace jsem vytvořil jednoduchý program, který kontroluje, jestli získá za pomoci KAuth nebo KConfig jiné výsledky. Jde o jednoduché volání funkce \cppc{authorize()} z~rozhraní \cppc{KAuthorized} kombinované s použitím proměnné prostředí \cppc{KDE_KIOSK_USE_KAUTH}. Zdrojem názvů akcí je statický seznam řetězců obsažený ve zdrojovém kódu programu. Ten obsahuje stejné názvy akcí jako statický .actions soubor použitý KAuthem na generování nastavení pro PolicyKit. Zdrojový kód programu lze nalézt v~\cppc{kdelibs/kdecore/auth/integtest.cpp} a~výsledný spustitelný soubor má název \cppc{integtest}.
@@ -455,26 +445,16 @@ Některé změny implementované v KDE-Libs pro účely integrace KAuth a~Kiosku
 Další postup by měl spíše směřovat k~obnovení funkčnosti jednotlivých omezení akcí a zdrojů dat v~Kiosku. Kiosk jako celek je bohužel jednou z~méně udržovaných částí KDE-Libs a~určitá část nastavitelných omezení je zcela neefektivní. Ne všechny jeho části přežily přechod z~KDE3 na KDE4 bez úhony. Možným prvním krokem by mohlo být odstranění zdvojení funkce pro autorizaci akcí (\cppc{KAuthorized::authorize()} a~\cppc{KAuthorized::authorizeKAction()}), které vede někdy k jejich zaměňování.
 
 \chapter{Nástroj KioskTool}
-Při psaní této kapitoly jsem hojně využíval knih \cite{StarchQt4} a~\cite{Ezust}. Obzvláště \cite{Ezust} je vhodným zdrojem informací, protože je volně dostupná.
+Tato kapitola se zabývá portem nástroje KioskTool z~KDE~3 na KDE~4. Nástroj KioskTool slouží k~jednoduchému vytváření, nastavování a přiřazování Kiosk profilů. V současné době existuje ve dvou verzích. Starší verze pro prostředí KDE~3 a~novější, ale nedokončený port pro KDE~4. Funkce verze pro KDE~3 jsou pro názornost ilustrovány snímky z~okna programu.
 
 \section{KioskTool v KDE 3}
-Aplikace KioskTool umožňovala v~KDE3 spravovat některé specifické části Kiosk profilů pomocí grafického rozhraní. Nejprve popíši její funkčnost ve verzi pro KDE3 za pomocí obrázků, protože tak to bude nejlepší.
-
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=10cm]{obrazky/KioskToolKDE3/uvodni_obrazovka.png}
     \caption{Úvodní obrazovka programu}
     \label{fig:kt3_uvodni}
 \end{figure}
 Úvodní obrazovka \ref{fig:kt3_uvodni} ukazuje seznam profilů s~jejich popisem, lištu s~menu a~tlačítka pro manipulaci s~profily. Velmi chybí možnost zkopírovat již existující profil.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=10cm]{obrazky/KioskToolKDE3/nastaveni.png}
-    \caption{Dialogové okno s~nastavením}
-    \label{fig:kt3_nastaveni}
-\end{figure}
-Mezi nastavení programu \ref{fig:kt3_nastaveni} patří také možnost automaticky uložit profily na vzdálený server.
 
 \begin{figure}[h]
     \centering
@@ -487,12 +467,10 @@ Dialog \ref{fig:kt3_novyprofil} pro vytvoření nového profilu je poměrně jed
 \begin{figure}[h]
     \centering
     \includegraphics[width=10cm]{obrazky/KioskToolKDE3/prirazeni_profilu.png}
-    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE3/prirazeni_profilu_skupine.png}
-    \includegraphics[width=8.5cm]{obrazky/KioskToolKDE3/prirazeni_profilu_uzivateli.png}
     \caption{Dialogy pro přiřazení profilů}
     \label{fig:kt3_prirazeni}
 \end{figure}
-Při pohledu na obrazovku a~dialogy pro přiřazení Kiosk profilů skupinám a~uživatelům je nutné si připomenout, že když má uživatel přiřazen svůj vlastní profil, nevztahují se na něj profily pro skupiny kterých je členem. To program nijak nezvýrazňuje. Bylo by dobré, kdyby poskytoval nějaký pohled, který by ukazoval všechny profily efektivní pro uživatele.
+Dialog pro přiřazení Kiosk profilů \ref{fig:kt3_prirazeni} skupinám a~uživatelům je až příliš jednoduchý. Když má uživatel přiřazen svůj vlastní profil, nevztahují se na něj profily pro skupiny kterých je členem. Toto není v programu nijak poznat. Zde by bylo vhodné, kdyby program poskytoval nějaký pohled, který by ukazoval všechny profily efektivní pro uživatele. Výchozí Kiosk profil takto zvýrazněn je.
 
 \begin{figure}[h]
     \centering
@@ -500,7 +478,7 @@ Při pohledu na obrazovku a~dialogy pro přiřazení Kiosk profilů skupinám a~
     \caption{Dialog s~nastavením profilu}
     \label{fig:kt3_nast_prof}
 \end{figure}
-Dialog \ref{fig:kt3_nast_prof} pro úpravu profilu je mnohem zajímavější. Je možné z~něj spouštět KControl moduly a~jiné části systému KDE a~tak docílit toho, že KioskTool může využít již existující funkcionalitu. Není proto nutné znovu \uv{vymýšlet kolo} a~uživatel pro nastavení Kiosk profilů používá stejné nástroje jako pro normální nastavení. Tato původní verze nástroje KioskTool definuje všechny moduly a~jejich vlastnosti v~jednom velkém XML souboru.
+Na obrázku \ref{fig:kt3_nast_prof} je dialog pro úpravu profilu. Nastavení je rozděleno na jednotlivé komponenty. Je možné z~něj navíc spouštět další části systému KDE a~tak docílit toho, že KioskTool může využít již existující funkcionalitu. Není proto nutné znovu implementovat něco, co již funguje a~uživatel pro nastavení Kiosk profilů používá stejné nástroje jako pro normální nastavení.
 
 \begin{figure}[h]
     \centering
@@ -508,12 +486,12 @@ Dialog \ref{fig:kt3_nast_prof} pro úpravu profilu je mnohem zajímavější. Je
     \caption{Dialog jedné komponenty nástroje}
     \label{fig:kt3_nast_komp}
 \end{figure}
-Na obrázku \ref{fig:kt3_nast_komp} je vidět jak takový modul vypadá. Uživatel může zamknout obrázek na pozadí plochy a~ukázat si náhled tohoto obrázku (náhled ve smyslu, že se pozadí plochy dočasně zamění).
+Na obrázku \ref{fig:kt3_nast_komp} je vidět jak taková komponenta vypadá. Uživatel může zamknout obrázek na pozadí plochy a~ukázat si náhled tohoto obrázku (náhled ve smyslu, že se pozadí plochy dočasně zamění).
 
-I~při krátké době nutné na seznámení s~nástrojem (KioskTool 1.0 v~Kubuntu 9.04) jsem narazil na fatální chyby, kdy se bez zjevného důvodu zhroutil. Nebude tedy možné se spolehnout na korektnost kódu.
+I~při krátké době nutné na seznámení s~nástrojem (KioskTool 1.0 v~Kubuntu 9.04) jsem narazil na fatální chyby, kdy se bez zjevného důvodu zhroutil. Není tedy možné se spolehnout na korektnost kódu.
 
 \section{KioskTool v KDE 4}
-Port nástroje do KDE4 totiž již existuje, i když je nedokončený a~dá se říci opuštěný. Uživatelské rozhraní se příliš nezměnilo: \ref{fig:kt4_uvod}. Původní nastavení pomocí velkého XML souboru bylo odstraněno a~nahrazeno mnoha menšími soubory (samozřejmě používají KConfig). To má za účel umožnit ostatím autorům napsat si pro své aplikace rozšíření. Nástroj však ztratil většinu svých starých vlastností, schopnost spouštět KControl moduly a~náhledy, své pěkné (i když zbytečné) obrázkové vzezření a~získal několik dalších chyb.
+Port nástroje do KDE4 již existuje, i~když je nedokončený a~dá se říci opuštěný. Uživatelské rozhraní se příliš nezměnilo co se týče struktury, pouze ztratilo původní vzhled: viz. obrázek \ref{fig:kt4_uvod}. Původní nastavení pomocí velkého XML souboru bylo odstraněno a~nahrazeno mnoha menšími soubory (používá se KConfig). To má za účel umožnit ostatím autorům napsat si pro své aplikace rozšíření. Nástroj však ztratil většinu svých starých vlastností, schopnost spouštět KControl moduly a~náhledy, již zmíněný vzhled a~získal několik dalších chyb.
 
 \begin{figure}[h]
     \centering
@@ -522,12 +500,12 @@ Port nástroje do KDE4 totiž již existuje, i když je nedokončený a~dá se �
     \label{fig:kt4_uvod}
 \end{figure}
 
-\paragraph{Strukturální popis}
+\paragraph{Funkční popis}
 Aplikace KioskTool se skládá z~několika základních komponent a~využívá grafické rozhraní navržené pomocí nástroj Qt Designer (části rozhraní jsou specifikovány v~.ui souborech, ze kterých se při kompilaci generuje kód). Vzhled je tedy alespoň z~pohledu programátora  částečně oddělen od funkce programu. Grafické prvky programu však přímo obsahují data se kterými se pracuje -- není využito návrhového vzoru MVC\footnote{Model-View-Controller}.
 
 Při startu programu jsou nejdříve vytvořeny základní komponenty \cppc{KAboutData} a~\cppc{KApplication} a~hlavní komponenta grafického rozhraní \cppc{KioskGui}. Ta je zobrazena. Potom je nastartováno vyhodnocování událostí.
 
-Komponenta \cppc{KioskGui} je odvozena od třídy \cppc{KXmlGuiWindow} -- načítá tedy část svého vzhledu z~.rc souboru \ref{listing:guirc} ve formátu XML.
+Komponenta \cppc{KioskGui} je odvozena od třídy \cppc{KXmlGuiWindow} -- načítá tedy část svého vzhledu z~.rc souboru viz. výpis  \ref{listing:guirc} ve formátu XML.
 \begin{mylisting}
 \caption{kiosktoolui.rc}
 \label{listing:guirc}
@@ -544,7 +522,7 @@ Komponenta \cppc{KioskGui} je odvozena od třídy \cppc{KXmlGuiWindow} -- načí
 \end{lstlisting}
 \end{mylisting}
 
-\cppc{KioskGui} potom vytváří instance tříd \cppc{KioskRun} a~\cppc{MainView}. \cppc{KioskRun} je pouhou obálkou nad souborem funkcí různého určení (tzv. God object anti-pattern) a~je používána pro většinu manipulace s~profily a~spouštění dalších programů. \cppc{MainView} pak určuje vzhled celého programu. Je to třída generovaná z~.ui souboru, obsahuje dvě úrovně nadpisů, tři tlačítka která mění význam podle kontextu a~objekt typu \cppc{QStackedWidget}, který je určen pro zobrazení aktuální stránky. Při startu je to stránka se seznamem profilů (\cppc{PAGE_PROFILE_SELECTION}).
+\cppc{KioskGui} potom vytváří instance tříd \cppc{KioskRun} a~\cppc{MainView}. \cppc{KioskRun} je pouhou obálkou nad souborem funkcí různého určení a~je používána pro většinu manipulace s~profily a~spouštění dalších programů. \cppc{MainView} pak určuje vzhled celého programu. Je to třída generovaná z~.ui souboru, obsahuje dvě úrovně nadpisů, tři tlačítka která mění význam podle kontextu a~objekt typu \cppc{QStackedWidget}, který je určen pro zobrazení aktuální stránky. Při startu je to stránka se seznamem profilů (\cppc{PAGE_PROFILE_SELECTION}).
 
 Přechod mezi stránkami je prováděn pomocí metody \cppc{selectPage(enum page)}, volané v~reakci na akce uživatele a~lze v~hrubých obrysech popsat pomocí stavového automatu \ref{fig:kioskstates}.
 
@@ -557,38 +535,18 @@ Přechod mezi stránkami je prováděn pomocí metody \cppc{selectPage(enum page
 
 Ve stavech \cppc{PAGE_PROFILE_NEW} a~\cppc{PAGE_PROFILE_PROPS} je používán stejný typ stránky. Jednou pro vytvoření nového profilu, podruhé pro změny v~něm.\linebreak \cppc{PAGE_PROFILE_ASSIGN} je stav, ve kterém je aktivní stránka pro přiřazení profilů uživatelům a~skupinám. Ve stavu \cppc{PAGE_COMPONENTS_SELECTION} je načten profil a~je zobrazena stránka se seznamem komponent pro stav \cppc{PAGE_COMPONENT} -- zde přestává stačit jeden stavový diagram.
 
-Je zřejmé, že způsob jakým je vytvořeno grafické rozhraní přímo určuje funkci programu. Přechod na stránku se seznamem komponent zapříčiní otevření profilu. Návrat na hlavní stránku se seznamem profilů pak způsobí jeho uložení. Platí to i naopak - technická omezení kladená na některé funkce programu se odrážejí v~návrhu jeho grafického rozhraní. Například program nemůže upravovat více jak jeden profil, protože ve třídě KioskRun nastavuje pro spuštění KConfig modulů proměnné prostředí a~kopíruje profil do dočasného umístění, kde ho může případná spouštěná aplikace měnit. Proto stavový automat a~přechody mezi stránkami. To by se mělo dát rozšířit -- program by měl např. být schopen pracovat s~profily na pozadí, zobrazovat okno pro úpravy konkrétního profilu (ať už vlastní nebo z~jiného programu) a~zároveň třeba i druhé okno se seznamem všech uživatelů a~k~nim přiřazených profilů. Je tedy potřeba oddělit model pro práci s~Kiosk profily a~jeho stavy od kódu pro grafické rozhraní.
+Je zřejmé, že způsob jakým je vytvořeno grafické rozhraní přímo určuje funkci programu. Přechod na stránku se seznamem komponent zapříčiní otevření profilu. Návrat na hlavní stránku se seznamem profilů pak způsobí jeho uložení. Platí to i naopak - technická omezení kladená na některé funkce programu se odrážejí v~návrhu jeho grafického rozhraní. Například program nemůže upravovat více jak jeden profil, protože ve třídě KioskRun nastavuje pro spuštění KConfig modulů proměnné prostředí a~kopíruje profil do dočasného umístění, kde ho může případná spouštěná aplikace měnit. Proto stavový automat a~přechody mezi stránkami.
 
-Vzniká tak také nutnost práce s~asynchronními událostmi, protože provedení některých funkcí modelu může trvat déle než je přípustné a~blokovat tak uživatelské rozhraní. V~aplikaci, kde se pouze přechází mezi přesně vymezenými stavy je toto omluvitelné, ale pokud má uživatel otevřeno několik oken, nebude chtít například čekat, až se profil uloží na server.
-
-Po těchto úpravách bude možné vylepšit uživatelské rozhraní programu. Stanovím si tedy několik cílů:
 \begin{enumerate}
-\item Krátkodobě - otestovat program a~opravit v~něm chyby, tuto verzi zveřejnit (bude součástí práce).
-\item Navrhnout a~implementovat model pro práci s~profily. Měl by být bezpečný a~pro přístup k~profilům používat KAuth pomocníka. Nabízí se použít Qt API pro stavové automaty \cite{QtStatMach}.
-\item Musí být možné upravovat profily zároveň z~více aplikací, případně ručně. KioskTool toto nijak neřeší a~je možné ztratit data pokud je spuštěn dvakrát.
-\item Implementovat několik jednoduchých terminálových programů pro práci s~profily.
+\item Otestovat program a~opravit v~něm chyby, tuto verzi zveřejnit.
+\item Navrhnout a~implementovat model pro práci s~profily.
 \item Nakonec vytvořit nové grafické rozhraní pro KioskTool.
 \end{enumerate}
-
-\paragraph{Triviální chyba}
-Při testování jsem narazil pouze na jednu drobnou, ale závažnou chybu. Při přidělování profilů není možné přiřadit více jak jeden profil pro uživatele nebo skupiny. To znamená, že program není vůbec použitelný ke svému účelu. Problém má triviální řešení. Přiřazení se totiž řídilo tímto algoritmem:
-\begin{lstlisting}[language=C++]
-for( int idx = 0; idx < listGroups->topLevelItemCount(); ++idx )
-{
-    item = listGroups->topLevelItem(idx);
-    if (item->text(0) == group)
-        break;
-}
-if (item)
-{
-    Error();
-\end{lstlisting}
-To je zjevně špatné, protože proměnná item bude obsahovat nenulovou hodnotu, jakmile pude přiřazen alespoň jeden profil. Je tedy potřeba přidat za \cppc{break;} další řádek s~\cppc{item = 0;}. Tímto se stává program použitelným pro běžného uživatele.
 
 \section{Návrh uživatelského rozhraní}
 Zde je použit nástroj QtDesigner pro navržení vzhledu uživatelského rozhraní. Funkční část bude muset být dále implementována a~tento vzhled je nutno brát pouze jako první krok.
 
-Namísto stránek a~stavových automatů bude mít program několik záložek. Zůstanou tedy tlačítka s~akcemi po stranách, ale uživatel bude mít mnohem větší přehled kde se nalézá. Seznam akcí také bude významně rozšířen.
+Namísto stránek a~stavových automatů bude mít program několik záložek. Zůstanou tedy tlačítka s~akcemi po stranách, ale uživatel bude mít mnohem větší přehled o celkovém stavu Kiosku. Seznam akcí také bude významně rozšířen.
 
 \begin{figure}
 \centering
@@ -597,9 +555,9 @@ Namísto stránek a~stavových automatů bude mít program několik záložek. Z
 \label{fig:kt4_newusers}
 \end{figure}
 
-Na obrázku \ref{fig:kt4_newusers} je program s~otevřenou kartou pro pohled na uživatele. Menu \uv{File} bylo nahrazeno menu \uv{Backup and Restore}, protože neobsahovalo nic jiného než akci pro zálohování profilů na server. Menu s~nastavením a~nápovědou zůstává. Většinu plochy programu zabírá pohled na seznam uživatelů a~k~nim přiřazených uživatelských a~skupinových profilů. Pokud má uživatel přiřazen jak uživatelský, tak skupinové profily, je zde fakt, že jsou ty skupinové neefektivní zvýrazněn přeškrtnutím.
+Na obrázku \ref{fig:kt4_newusers} je program s~otevřenou kartou pro pohled na uživatele. Menu \uv{File} bylo nahrazeno menu \uv{Backup and Restore}, protože neobsahovalo nic jiného než akci pro zálohování profilů na server. Menu s~nastavením a~nápovědou zůstává. Nastavení bude rozšířeno o možnost spustit konvertor na nastavení KAuth implementovaný v předchozí kapitole. Většinu plochy programu zabírá pohled na seznam uživatelů a~k~nim přiřazených uživatelských a~skupinových profilů. Pokud má uživatel přiřazen jak uživatelský, tak skupinové profily, je zde fakt, že jsou ty skupinové neefektivní graficky zvýrazněn.
 
-V~seznamu po pravé straně je několik pro KioskTool nových akcí. Akce \uv{View Profile} slouží k~otevření okna s~profilem. Pokud má uživatel pouze skupinové profily, otevře se stejné okno, ale jeho obsah bude výslednicí skupinových profilů a~nebude možné jej měnit (toto musí být zvýrazněno aby nebyl uživatel programu uveden v~omyl). Akce \uv{View Profile} přiřadí uživateli nový prázdný profil. Akce \uv{Assign Profile} slouží k~přiřazení existujícího profilu uživateli. \uv{Clear Profile} odebere uživateli jeho profil.
+V~seznamu po pravé straně je několik pro KioskTool nových akcí. Akce \uv{View Profile} slouží k~otevření okna s~profilem. Akce \uv{New Profile} přiřadí uživateli nový prázdný profil. Akce \uv{Assign Profile} slouží k~přiřazení existujícího profilu uživateli. \uv{Clear Profile} odebere uživateli jeho profil.
 
 Pod seznamem je pole pro filtrování uživatelů podle zadaného textu. Je tak možné rychle vyhledávat v~obsáhlém seznamu uživatelů.
 
@@ -610,7 +568,7 @@ Pod seznamem je pole pro filtrování uživatelů podle zadaného textu. Je tak 
 \label{fig:kt4_newgroups}
 \end{figure}
 
-Karta se skupinami \ref{fig:kt4_newgroups} je podobná kartě pro uživatele, zobrazuje však skupiny, jim přiřazené skupinové profily a~jejich pořadí. K~seznamu akcí z~karty s~uživateli jsou přidány akce pro změnu jejich pořadí. Pořadí by také mělo být možné měnit přetažením položek kurzorem na jinou pozici v~seznamu.
+Karta se skupinami \ref{fig:kt4_newgroups} je podobná kartě pro uživatele, zobrazuje však skupiny, jim přiřazené skupinové profily a~jejich pořadí. K~seznamu akcí z~karty s~uživateli jsou přidány akce pro změnu pořadí skupin.
 
 \begin{figure}[h]
     \centering
@@ -621,8 +579,10 @@ Karta se skupinami \ref{fig:kt4_newgroups} je podobná kartě pro uživatele, zo
 
 Záložka s~profily \ref{fig:kt4_newprofiles} obsahuje jak název napovídá seznam profilů a~akce pro práci s~nimi. V~pořadí odshora vytvoření nového profilu, kopie již existujícího, smazání profilu, úpravu profilu a~dále akce pro zrušení přiřazení profilů pro uživatele, skupiny a~obojí zároveň. Seznam je zakončen akcí pro smazání všech nepoužívaných profilů.
 
-Všechny záložky budou používat stejný model pro naplnění seznamů. Všechny také mají akci pro uložení změn \uv{Commit}. Při jejím použití by se měl zobrazit seznam všech uživatelem provedených změn a~umožnit tak uživateli je ještě jednou zkontrolovat před zapsáním na disk.
+Všechny záložky budou používat stejný model pro naplnění seznamů. Všechny také mají akci pro uložení změn \uv{Commit}.
 
+\section{Implementace}
+\section{Další postup}
 Změny v~profilech samotných by bylo dobré provádět způsobem podobným jako využívá nástroj KConfigEditor. Ten vypadá zhruba takto: \ref{fig:kconfeditor}. KConfigEditor používá rozšíření systému KConfig o~deklarace klíčů pomocí systému KConfigXT. Ten je zpravidla používán k~vygenerování dialogů pro nastavení programů. V~souboru KConfigXT se uvede jaké klíče z~konfigurace program používá a~také jejich typ. Navíc se tyto soubory instalují společně s~programy -- lze jich tedy využít v~editoru nastavení. Integrace tohoto nástroje a~rozšíření a~oprava KConfigXT souborů by pak vedly k~vcelku elegantnímu řešení problému úpravy profilů.
 
 \begin{figure}[h]
@@ -631,6 +591,7 @@ Změny v~profilech samotných by bylo dobré provádět způsobem podobným jako
     \caption{Ukázka programu KConfigEditor. Převzato z~\cite{KConfigEditor}.}
     \label{fig:kconfeditor}
 \end{figure}
+
 
 \chapter{Závěr}
 V~kapitole 2 byly popsány technologie a~rozhraní, na kterých je dále stavěno.
@@ -645,7 +606,7 @@ V~příloze B jsou informace o~umístění zdrojových kódů, obsahu přiložen
 
 %=========================================================================
 \appendix
-\chapter{Vymezení pojmů}
+\chapter{Vymezení pojmů}\label{pojmySeznam}
 \begin{description}
 \item[Authorization Services] je obdoba PolicyKitu pro operační systém Apple OSX.
 \item[KAuth] je rozhraní nad autorizačním řešením jako je například PolicyKit.
@@ -656,14 +617,15 @@ V~příloze B jsou informace o~umístění zdrojových kódů, obsahu přiložen
 \item[Kiosk] je souhrnný pojem pro některé vlastnosti KConfigu a~postup načítání konfigurace obecně.
 \item[Kiosk profil] je přiřazený uživateli nebo skupině uživatelů. Má vyšší prioritu než normální uživatelská nastavení KDE, ale nižší než globální systémové nastavení.
 \item[KioskTool] je aplikace pro správu Kiosk profilů. V~KDE 3 umožňovala jednoduše nastavit některé aspekty Kiosku/KConfigu bez nutnosti měnit profily ručně.
-\item[KDE] je komunita vývojářů pracujících na tzv. KDE Software Compilation. Zde používám označení KDE ve starém významu -- jako uživatelské prostředí.
+\item[KDE] je komunita vývojářů pracujících na tzv. KDE Software Compilation.
+\item[KDE SC,] nebo také KDE Software Compilation zahrnuje veškeré projekty KDE, které mají jednotný vývojový cyklus.
 \item[PolicyKit] je starší verze autorizačního rozhraní dostupná v~Linuxu.
 \item[PolicyKit1,] nebo také \uv{polkit} je jeho novější verze. Právě tu budu převážně používat.
 \item[PolicyKit autorita] je centrálním prvkem systému PolicyKit. Slouží pro uložení autorizačních dat.
 \item[PolicyKit Local Authority] je výchozí implementace PolicyKit autority. Používá textové soubory.
 \item[polkit-qt] je soubor knihoven obalující PolicyKit.
 \item[polkit-kde] je nadstavba nad polkit-qt pro prostředí KDE. Implementuje autentizačního agenta a~KControl modul pro práci s~autorizacemi.
-\item[polkitd] je systémová služba PolicyKitu a~implementuje tzv. autoritu.
+\item[polkitd] je systémová služba PolicyKitu a~implementuje tzv. PolicyKit autoritu.
 \item[Qt] je balík knihoven v~jazyce C++.
 \item[QtDesigner] je program pro vizuální návrh uživatelského rozhraní programů na bázi Qt knihoven.
 \end{description}
