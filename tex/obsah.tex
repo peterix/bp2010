@@ -524,7 +524,7 @@ Komponenta \cppc{KioskGui} je odvozena od třídy \cppc{KXmlGuiWindow} -- načí
 
 \cppc{KioskGui} potom vytváří instance tříd \cppc{KioskRun} a~\cppc{MainView}. \cppc{KioskRun} je pouhou obálkou nad souborem funkcí různého určení a~je používána pro většinu manipulace s~profily a~spouštění dalších programů. \cppc{MainView} pak určuje vzhled celého programu. Je to třída generovaná z~.ui souboru, obsahuje dvě úrovně nadpisů, tři tlačítka která mění význam podle kontextu a~objekt typu \cppc{QStackedWidget}, který je určen pro zobrazení aktuální stránky. Při startu je to stránka se seznamem profilů (\cppc{PAGE_PROFILE_SELECTION}).
 
-Přechod mezi stránkami je prováděn pomocí metody \cppc{selectPage(enum page)}, volané v~reakci na akce uživatele a~lze v~hrubých obrysech popsat pomocí stavového automatu \ref{fig:kioskstates}.
+Přechod mezi stránkami je prováděn pomocí metody \cppc{selectPage(enum page)}, volané v~reakci na akce uživatele a~lze v~hrubých obrysech popsat pomocí stavového automatu na diagramu \ref{fig:kioskstates}. Návrat z~vyvolané karty je možný buď pomocí metody \cppc{finishedPage()}, která uloží provedené změny, nebo metody \cppc{discardPage()}, která změny zahazuje.
 
 \begin{figure}[h]
     \centering
@@ -533,20 +533,14 @@ Přechod mezi stránkami je prováděn pomocí metody \cppc{selectPage(enum page
     \label{fig:kioskstates}
 \end{figure}
 
-Ve stavech \cppc{PAGE_PROFILE_NEW} a~\cppc{PAGE_PROFILE_PROPS} je používán stejný typ stránky. Jednou pro vytvoření nového profilu, podruhé pro změny v~něm.\linebreak \cppc{PAGE_PROFILE_ASSIGN} je stav, ve kterém je aktivní stránka pro přiřazení profilů uživatelům a~skupinám. Ve stavu \cppc{PAGE_COMPONENTS_SELECTION} je načten profil a~je zobrazena stránka se seznamem komponent pro stav \cppc{PAGE_COMPONENT} -- zde přestává stačit jeden stavový diagram.
+Ve stavech \cppc{PAGE_PROFILE_NEW} a~\cppc{PAGE_PROFILE_PROPS} je používán stejný typ stránky. Jednou pro vytvoření nového profilu, podruhé pro změny v~něm.\linebreak \cppc{PAGE_PROFILE_ASSIGN} je stav, ve kterém je aktivní stránka pro přiřazení profilů uživatelům a~skupinám. Ve stavu \cppc{PAGE_COMPONENTS_SELECTION} je načten profil a~je zobrazena stránka se seznamem komponent pro stav \cppc{PAGE_COMPONENT}. Seznam komponent je určen konfigurací načtenou ze souborů používajících formát KConfig.
 
-Je zřejmé, že způsob jakým je vytvořeno grafické rozhraní přímo určuje funkci programu. Přechod na stránku se seznamem komponent zapříčiní otevření profilu. Návrat na hlavní stránku se seznamem profilů pak způsobí jeho uložení. Platí to i naopak - technická omezení kladená na některé funkce programu se odrážejí v~návrhu jeho grafického rozhraní. Například program nemůže upravovat více jak jeden profil, protože ve třídě KioskRun nastavuje pro spuštění KConfig modulů proměnné prostředí a~kopíruje profil do dočasného umístění, kde ho může případná spouštěná aplikace měnit. Proto stavový automat a~přechody mezi stránkami.
+Je zřejmé, že způsob jakým je vytvořeno grafické rozhraní přímo určuje funkci programu. Přechod na stránku se seznamem komponent zapříčiní otevření profilu. Návrat na hlavní stránku se seznamem profilů pak způsobí jeho uložení. Platí to i~naopak -- technická omezení kladená na některé funkce programu se odrážejí v~návrhu jeho grafického rozhraní. Například program nemůže upravovat více jak jeden profil, protože ve třídě KioskRun nastavuje pro spuštění KConfig modulů proměnné prostředí a~kopíruje profil do dočasného umístění, kde ho může případná spouštěná aplikace měnit. Proto stavový automat a~přechody mezi stránkami.
 
-\begin{enumerate}
-\item Otestovat program a~opravit v~něm chyby, tuto verzi zveřejnit.
-\item Navrhnout a~implementovat model pro práci s~profily.
-\item Nakonec vytvořit nové grafické rozhraní pro KioskTool.
-\end{enumerate}
+\section{Návrh nového uživatelského rozhraní}
+Zde je použit nástroj QtDesigner pro navržení vzhledu uživatelského rozhraní.
 
-\section{Návrh uživatelského rozhraní}
-Zde je použit nástroj QtDesigner pro navržení vzhledu uživatelského rozhraní. Funkční část bude muset být dále implementována a~tento vzhled je nutno brát pouze jako první krok.
-
-Namísto stránek a~stavových automatů bude mít program několik záložek. Zůstanou tedy tlačítka s~akcemi po stranách, ale uživatel bude mít mnohem větší přehled o celkovém stavu Kiosku. Seznam akcí také bude významně rozšířen.
+V prve řadě bude sloučeno několik karet určených pro správu profilů do jednoho celku a~funkce editace profilů bude oddělena. Namísto stránek a~stavových automatů bude mít část pro správu profilů několik záložek. Zůstanou tlačítka s~akcemi po stranách, ale uživatel bude mít mnohem větší přehled o celkovém stavu Kiosku.
 
 \begin{figure}
 \centering
@@ -555,11 +549,9 @@ Namísto stránek a~stavových automatů bude mít program několik záložek. Z
 \label{fig:kt4_newusers}
 \end{figure}
 
-Na obrázku \ref{fig:kt4_newusers} je program s~otevřenou kartou pro pohled na uživatele. Menu \uv{File} bylo nahrazeno menu \uv{Backup and Restore}, protože neobsahovalo nic jiného než akci pro zálohování profilů na server. Menu s~nastavením a~nápovědou zůstává. Nastavení bude rozšířeno o možnost spustit konvertor na nastavení KAuth implementovaný v předchozí kapitole. Většinu plochy programu zabírá pohled na seznam uživatelů a~k~nim přiřazených uživatelských a~skupinových profilů. Pokud má uživatel přiřazen jak uživatelský, tak skupinové profily, je zde fakt, že jsou ty skupinové neefektivní graficky zvýrazněn.
+Na obrázku \ref{fig:kt4_newusers} je program s~otevřenou kartou pro pohled na uživatele. Menu Settings bude rozšířeno o~možnost spustit konvertor na nastavení KAuth implementovaný v~předchozí kapitole. Většinu plochy programu zabírá pohled na seznam uživatelů a~k~nim přiřazených uživatelských a~skupinových profilů. Pokud má uživatel přiřazen jak uživatelský, tak skupinové profily, je zde fakt, že jsou ty skupinové profily neefektivní graficky zvýrazněn.
 
-V~seznamu po pravé straně je několik pro KioskTool nových akcí. Akce \uv{View Profile} slouží k~otevření okna s~profilem. Akce \uv{New Profile} přiřadí uživateli nový prázdný profil. Akce \uv{Assign Profile} slouží k~přiřazení existujícího profilu uživateli. \uv{Clear Profile} odebere uživateli jeho profil.
-
-Pod seznamem je pole pro filtrování uživatelů podle zadaného textu. Je tak možné rychle vyhledávat v~obsáhlém seznamu uživatelů.
+V~seznamu po pravé straně je několik pro KioskTool nových akcí. Akce \uv{Assign Profile} slouží k~přiřazení existujícího profilu uživateli a bude otevírat jednoduchý modální dialog se seznamem existujících profilů. \uv{Clear Profile} odebere uživateli jeho profil. Copy a~Paste slouží ke kopírování stejného nastavení uživatelského profilu mezi uživateli.
 
 \begin{figure}
 \centering
@@ -568,7 +560,7 @@ Pod seznamem je pole pro filtrování uživatelů podle zadaného textu. Je tak 
 \label{fig:kt4_newgroups}
 \end{figure}
 
-Karta se skupinami \ref{fig:kt4_newgroups} je podobná kartě pro uživatele, zobrazuje však skupiny, jim přiřazené skupinové profily a~jejich pořadí. K~seznamu akcí z~karty s~uživateli jsou přidány akce pro změnu pořadí skupin.
+Karta se skupinami na obrázku \ref{fig:kt4_newgroups} je podobná kartě pro uživatele, zobrazuje však skupiny, jim přiřazené skupinové profily a~pořadí skupin zde odpovídá pořadí zpracování skupinových profilů v~systému Kiosk. K~seznamu akcí z~karty s~uživateli jsou přidány akce \uv{Move up} a \uv{Move down} pro změnu pořadí skupin.
 
 \begin{figure}[h]
     \centering
@@ -577,15 +569,25 @@ Karta se skupinami \ref{fig:kt4_newgroups} je podobná kartě pro uživatele, zo
     \label{fig:kt4_newprofiles}
 \end{figure}
 
-Záložka s~profily \ref{fig:kt4_newprofiles} obsahuje jak název napovídá seznam profilů a~akce pro práci s~nimi. V~pořadí odshora vytvoření nového profilu, kopie již existujícího, smazání profilu, úpravu profilu a~dále akce pro zrušení přiřazení profilů pro uživatele, skupiny a~obojí zároveň. Seznam je zakončen akcí pro smazání všech nepoužívaných profilů.
+Záložka s~profily na obrázku \ref{fig:kt4_newprofiles} obsahuje seznam profilů a~akce pro práci s~nimi. V~pořadí odshora vytvoření nového profilu, kopie již existujícího profilu, smazání profilu, úpravu profilu, akci pro otevření původní karty s vlastnostmi profilu jako modální dialog, a~dále akce pro zrušení přiřazení profilů pro uživatele, skupiny a~obojí zároveň. Seznam je zakončen akcí pro smazání všech nepoužívaných profilů.
 
-Všechny záložky budou používat stejný model pro naplnění seznamů. Všechny také mají akci pro uložení změn \uv{Commit}.
+Všechny záložky také mají akci pro uložení změn \uv{Commit}. Její použití vyžaduje administrátorská práva.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=10cm]{obrazky/stated-new.pdf}
+    \caption{Stavy grafického rozhraní aplikace KioskTool s úpravami}
+    \label{fig:kioskstatesnew}
+\end{figure}
+
+Přechod mezi stavy programu je opět možné modelovat stavovým diagramem: \ref{fig:kioskstatesnew}. Oproti původnímu diagramu je odstraněn stav pro přiřazování vybraného profilu uživatelům a skupinám. Všechny přechody ze stavu \cppc{MAIN_VIEW} místo výměny karet otevírají modální dialogy.
+
+Všechny záložky hlavního okna budou používat stejný model pro naplnění pohledů daty. Jediným typem vstupu od pohledů bude výběr jedné položky. Tlačítka po pravé straně pak budou spouštět akce upravující stav modelu. Akce \uv{Commit} pak způsobí uložení změn v modelu.
 \section{Implementace}
-TODO: Zatím nedopsáno, v~podstatě se jedná o odstranění původního grafického rozhraní na bázi \uv{výměny karet}, použití navrženého grafického rozhraní a~implementaci modelu, který plní víceřádkové listboxy v~rozhraní. Tedy jeden model a~několik pohledů na něj.
+Implementace nového uživatelského rozhraní spočívá v~odstranění původního rozhraní na~bázi \uv{výměny karet} z~třídy KioskGUI, použití navrženého grafického rozhraní a~implementaci modelu, který plní jednotlivé pohledy. Pohledy jsou odvozeny od třídy QTreeView. Pro správu profilů je využit jeden model a~tři pohledy na něj. Mezi hlavním modelem obsahujícím všechny informace a~pohledy jsou proxy modely, které filtruji a~v~případě pohledu na skupiny i~řadí informace z~hlavního modelu. Původní třída KioskGui byla zkopírována a~využita jako editor profilů. Byly z~ní odstraněny stavy a~karty související se~správou profilů. Do hlavního menu byla dále přidána akce pro konverzi Kiosk profilů na nastavení pro PolicyKit. Ta používá konvertor implementovaný v~předchozí kapitole.
 
-\section{Další postup}
-Změny v~profilech samotných by bylo dobré provádět způsobem podobným jako využívá nástroj KConfigEditor. Ten vypadá zhruba takto jako na tomto obrázku: \ref{fig:kconfeditor}. KConfigEditor používá rozšíření systému KConfig o~deklarace klíčů pomocí systému KConfigXT. Ten je zpravidla používán k~vygenerování dialogů pro nastavení programů. V~souboru KConfigXT se uvede jaké klíče z~konfigurace program používá a~také jejich typ. Navíc se tyto soubory instalují společně s~programy -- lze jich tedy využít v~editoru nastavení. Integrace tohoto nástroje a~rozšíření a~oprava KConfigXT souborů by pak vedly k~vcelku elegantnímu řešení problému úpravy profilů.
+\subsection*{Další možný postup}
+V~této fázi je~nástroj KioskTool použitelný pro nastavení omezení akcí a byly v něm díky provedeným změnám odstraněny chyby. Editace profilů by však stále mohla být řešena lépe. Například integrací nástroje KConfigEditor. Ten vypadá zhruba tak jako na tomto obrázku: \ref{fig:kconfeditor}. KConfigEditor používá rozšíření systému KConfig o~deklarace klíčů a jejich typů pomocí systému KConfigXT. Ten je zpravidla používán k~vygenerování dialogů pro nastavení programů. Soubory s nastavením KConfigXT se instalují společně s~programy -- lze jich tedy využít v~editoru nastavení. Integrace tohoto nástroje a~rozšíření a~oprava KConfigXT souborů by pak vedly k~vcelku elegantnímu řešení problému úpravy profilů. Ne všechny programy však tento systém využívají.
 
 \begin{figure}[h]
     \centering
@@ -596,13 +598,13 @@ Změny v~profilech samotných by bylo dobré provádět způsobem podobným jako
 
 
 \chapter{Závěr}
-V~kapitole 2 byly popsány technologie a~rozhraní, na kterých je dále stavěno.
+Ve druhé kapitole byly popsány technologie a~rozhraní na kterých je dále stavěno.
 
-V~kapitole 3 byl učiněn neúspěšný pokus o~integraci KAuth do KAuthorized. Byly přitom odkryty závažné nedostatky v~KAuth a~rozhraních, nad kterými je postaven. Nejzajímavější je pak Denial of Service útok na PolicyKit. Ten jsem objevil za pomoci implementovaného testovacího nástroje kauthDoS. KAuth byl integrován do KAuthorized, ale díky zmíněné chybě se při jeho použití stává prostředí KDE naprosto nepoužitelným. Začlenění tohoto celku do kdelibs tedy není z~praktických a~bezpečnostních důvodů vhodné a~proto jsem poslední bod zadání přeskočil.
+Ve třetí kapitole byla navržena a~implementována integrace rozhraní KAuth a KAuthorized. Během návrhu a~implementace byly odkryty některé závažné nedostatky v~KAuth a~rozhraních, nad kterými je postaven. Mimo jiné i~Denial of~Service útok na PolicyKit. Ten jsem objevil za pomoci implementovaného testovacího nástroje kauthDoS. Integrace má spíše experimentální charakter a jejím hlavním přínosem jsou objevené a opravené chyby v~integrovaných rozhraních. Začlenění tohoto celku do hlavní vývojové větve balíku KDE-Libs tak není z~praktických a~bezpečnostních důvodů vhodné.
 
-Dále byl implementován nástroj kioskpklaconvert a~KAuth pomocník kioskpklahelper. Ty umožňují konvertovat omezení akcí a~zdrojů z~KConfigu do nastavení PolicyKit Local Authority.
+Dále byl implementován nástroj kioskpklaconvert a~KAuth pomocník kioskpklahelper. Ty umožňují konvertovat omezení akcí a~zdrojů z~KConfigu do nastavení PolicyKit Local Authority. Byly také implementovány testy ověřující funkčnost řešení.
 
-Kapitola 4 popisuje port nástroje KioskTool do KDE4, navrhuje pro něj nové grafické rozhraní a~také popisuje provedené změny nutné pro zprovoznění nástroje. Tím je také splněn čtvrtý bod zadání. V~práci započaté na nástroji KioskTool budu pokračovat.
+Kapitola 4 popisuje původní verzi nástroje KioskTool, již existující port do KDE~4 a navrhuje pro něj nové grafické rozhraní. Je také stručně popsána implementace změny grafického rozhraní a~způsob interakce nástroje KioskTool s~rozhraním KAuth integrovaným do Kiosku (je použit konvertor implementovaný ve třetí kapitole). Tím je také splněn čtvrtý bod zadání. V~práci započaté na nástroji KioskTool budu pokračovat.
 
 V~příloze B jsou informace o~umístění zdrojových kódů, obsahu přiloženého datového nosiče a~instalaci a~zprovoznění KDE4.
 

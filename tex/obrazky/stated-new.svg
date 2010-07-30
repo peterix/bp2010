@@ -10,12 +10,12 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="685.76434"
+   width="622.08636"
    height="379.11453"
    id="svg2"
    version="1.1"
    inkscape:version="0.47 r22583"
-   sodipodi:docname="stated.svg">
+   sodipodi:docname="stated-new.pdf">
   <defs
      id="defs4">
     <marker
@@ -439,9 +439,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.1098395"
-     inkscape:cx="295.87665"
-     inkscape:cy="182.12627"
+     inkscape:zoom="1.0549198"
+     inkscape:cx="303.50458"
+     inkscape:cy="182.12628"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -458,7 +458,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -466,7 +466,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-25.869394,-53.22208)">
+     transform="translate(-89.54736,-53.22208)">
     <flowRoot
        xml:space="preserve"
        id="flowRoot2816"
@@ -480,7 +480,7 @@
            y="252.36218"
            style="font-weight:bold;fill:#000000;-inkscape-font-specification:Bitstream Vera Sans Bold" /></flowRegion><flowPara
          id="flowPara2822"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold">PAGE_PROFILE_SELECTION</flowPara></flowRoot>    <flowRoot
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold">MAIN_VIEW</flowPara></flowRoot>    <flowRoot
        transform="translate(-179.00064,-142.11459)"
        xml:space="preserve"
        id="flowRoot2816-0"
@@ -493,7 +493,7 @@
            y="252.36218"
            style="font-weight:bold;fill:#000000;-inkscape-font-specification:Bitstream Vera Sans Bold" /></flowRegion><flowPara
          id="flowPara2822-6"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold">PAGE_PROFILE_NEW</flowPara></flowRoot>    <path
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold">PROFILE_NEW</flowPara></flowRoot>    <path
        sodipodi:type="arc"
        style="color:#000000;fill:none;stroke:#000000;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="path2824-4"
@@ -516,20 +516,7 @@
            y="252.36218"
            style="font-weight:bold;fill:#000000;-inkscape-font-specification:Bitstream Vera Sans Bold" /></flowRegion><flowPara
          id="flowPara2822-6-6"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold">PAGE_PROFILE_PROPS</flowPara></flowRoot>    <flowRoot
-       transform="translate(-242.35365,97.850804)"
-       xml:space="preserve"
-       id="flowRoot2816-0-0-6"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;color:#000000;fill:#000000;stroke:none;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Andale Mono;-inkscape-font-specification:Bitstream Vera Sans Bold"><flowRegion
-         id="flowRegion2818-5-0-7"><rect
-           id="rect2820-6-4-5"
-           width="315.71429"
-           height="215.71428"
-           x="201.42857"
-           y="252.36218"
-           style="font-weight:bold;fill:#000000;-inkscape-font-specification:Bitstream Vera Sans Bold" /></flowRegion><flowPara
-         id="flowPara2822-6-6-6"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold">PAGE_PROFILE_ASSIGN</flowPara></flowRoot>    <flowRoot
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold">PROFILE_PROPS</flowPara></flowRoot>    <flowRoot
        transform="translate(96.145008,146.78229)"
        xml:space="preserve"
        id="flowRoot2816-0-0-6-8"
@@ -581,22 +568,16 @@
        transform="translate(95.852097,150.81624)"
        width="744.09448"
        height="1052.3622" />
-    <use
-       x="0"
-       y="0"
-       xlink:href="#path2824-4"
-       id="use3021"
-       transform="translate(-63.677966,239.96539)"
-       width="744.09448"
-       height="1052.3622" />
-    <use
-       x="0"
-       y="0"
-       xlink:href="#use3021"
+    <path
+       transform="matrix(0.85964759,0,0,0.78299078,321.10552,44.106432)"
+       d="m 452.85715,267.00504 c 0,16.76578 -46.8502,30.35714 -104.64286,30.35714 -57.79265,0 -104.64286,-13.59136 -104.64286,-30.35714 0,-16.76579 46.85021,-30.35715 104.64286,-30.35715 57.79266,0 104.64286,13.59136 104.64286,30.35715 z"
+       sodipodi:ry="30.357143"
+       sodipodi:rx="104.64286"
+       sodipodi:cy="267.00504"
+       sodipodi:cx="348.21429"
        id="use3023"
-       transform="translate(503.39109,-105.23622)"
-       width="744.09448"
-       height="1052.3622" />
+       style="color:#000000;fill:none;stroke:#000000;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:type="arc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow2Lend)"
        d="m 319.06013,234.60304 c -24.67019,-36.06256 -59.15112,-66.33201 -93.8884,-96.4501"
@@ -638,7 +619,7 @@
            x="300.96219"
            y="156.17859" /></flowRegion><flowPara
          id="flowPara4463-3"
-         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">discardPage()</flowPara></flowRoot>    <flowRoot
+         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">discard()</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot4457-2-5"
        style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;color:#000000;fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold"
@@ -652,7 +633,7 @@
            y="156.17859"
            style="stroke-width:2" /></flowRegion><flowPara
          style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans"
-         id="flowPara3031">finishedPage()</flowPara></flowRoot>    <path
+         id="flowPara3031">finished()</flowPara></flowRoot>    <path
        style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow2Lend)"
        d="m 543.51552,399.61493 c 18.33877,-30.19199 34.6332,-75.31733 50.87421,-120.83287"
        id="path3025-3"
@@ -661,11 +642,6 @@
        style="fill:none;stroke:#000000;stroke-width:1.99999976;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow2Lend)"
        d="M 578.77464,275.50745 C 549.26025,296.88048 537.5118,359.3047 523.88037,389.75248"
        id="path3025-1-8"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1.97978723;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow2Lend)"
-       d="M 201.86369,363.73951 C 240.43508,353.42022 285.71703,358.32 304.88959,278.2212"
-       id="path3025-1-0-0"
        sodipodi:nodetypes="cc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1.99999976;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow2Lend)"
@@ -681,30 +657,6 @@
        style="fill:none;stroke:#000000;stroke-width:1.97978723;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow2Lend)"
        d="m 467.07854,385.86789 c -1.40912,-41.02578 8.09701,-71.10988 -52.51493,-110.9487"
        id="path3025-1-0-0-2"
-       sodipodi:nodetypes="cc" />
-    <flowRoot
-       xml:space="preserve"
-       id="flowRoot4457-0"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;color:#000000;fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold"
-       transform="matrix(0.72442677,-0.68935176,0.68935176,0.72442677,-164.18124,426.7879)"><flowRegion
-         style="stroke-width:2"
-         id="flowRegion4459-4"><rect
-           style="stroke-width:2"
-           id="rect4461-8"
-           width="119.36268"
-           height="24.550007"
-           x="300.96219"
-           y="156.17859" /></flowRegion><flowPara
-         id="flowPara4463-7"
-         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">slotManageUsers()</flowPara></flowRoot>    <path
-       style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow2Lend)"
-       d="m 275.44874,262.53631 c -42.86625,12.23004 -66.18303,62.44798 -88.3677,85.40358"
-       id="path3025-1-3"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1.97978723;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow2Lend)"
-       d="m 196.88952,353.02643 c 28.51697,-26.40636 57.37263,-34.24217 89.28078,-85.51831"
-       id="path3025-1-0-0-8"
        sodipodi:nodetypes="cc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1.97978723;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow2Lend)"
@@ -778,7 +730,7 @@
            x="300.96219"
            y="156.17859" /></flowRegion><flowPara
          id="flowPara4463-3-0"
-         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">discardPage()</flowPara></flowRoot>    <flowRoot
+         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">discard()</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot4457-2-5-3"
        style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;color:#000000;fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold"
@@ -792,35 +744,7 @@
            y="156.17859"
            style="stroke-width:2" /></flowRegion><flowPara
          id="flowPara4463-3-4-0"
-         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">finishedPage()</flowPara></flowRoot>    <flowRoot
-       xml:space="preserve"
-       id="flowRoot4457-2-6"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;color:#000000;fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold"
-       transform="matrix(0.71305986,-0.70110315,0.70110315,0.71305986,-164.80628,503.47539)"><flowRegion
-         style="stroke-width:2"
-         id="flowRegion4459-9-3"><rect
-           style="stroke-width:2"
-           id="rect4461-4-2"
-           width="250.69011"
-           height="26.811775"
-           x="300.96219"
-           y="156.17859" /></flowRegion><flowPara
-         id="flowPara4463-3-06"
-         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">discardPage()</flowPara></flowRoot>    <flowRoot
-       xml:space="preserve"
-       id="flowRoot4457-2-5-1"
-       style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;color:#000000;fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold"
-       transform="matrix(0.72365823,-0.6901585,0.6901585,0.72365823,-141.59667,519.54015)"><flowRegion
-         id="flowRegion4459-9-1-5"
-         style="stroke-width:2"><rect
-           id="rect4461-4-7-5"
-           width="250.69011"
-           height="26.811775"
-           x="300.96219"
-           y="156.17859"
-           style="stroke-width:2" /></flowRegion><flowPara
-         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans"
-         id="flowPara3031-4">finishedPage()</flowPara></flowRoot>    <flowRoot
+         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">finished()</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot4457-2-5-3-7"
        style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;color:#000000;fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold"
@@ -834,7 +758,7 @@
            y="156.17859"
            style="stroke-width:2" /></flowRegion><flowPara
          id="flowPara4463-3-4-0-6"
-         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">finishedPage()</flowPara></flowRoot>    <flowRoot
+         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">finished()</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot4457-2-8-9"
        style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;color:#000000;fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold"
@@ -848,7 +772,7 @@
            x="300.96219"
            y="156.17859" /></flowRegion><flowPara
          id="flowPara4463-3-0-4"
-         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">discardPage()</flowPara></flowRoot>    <flowRoot
+         style="font-weight:normal;fill:#000000;stroke:none;-inkscape-font-specification:Bitstream Vera Sans">discard()</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot4457-2-5-3-7-5"
        style="font-size:11px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;color:#000000;fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold"
