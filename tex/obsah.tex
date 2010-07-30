@@ -69,7 +69,7 @@ Tato kapitola se~zabývá popisem technologií použitých dále. Jedná se~zejm
 
 Uživatelé se~do systému přihlašují, přičemž dochází k~ověření jejich identity, autentizaci. V~systému Linux lze řešit přihlašování pomocí mechanismu PAM\footnote{Pluggable Authentication Modules}. Ten umožňuje psát programy vyžadující autentizaci nazávisle na způsobu jakým je~jí dosaženo. Nezáleží pak, jestli se~uživatel přihlašuje heslem nebo například otiskem prstu. Další způsoby autentizace je~možné do systému doplnit pomocí zásuvných modulů. Podrobnější popis lze nalézt například v~článku, který vyšel na Root.cz\cite{rootpam}. Pokud je~to vyžadováno, KAuth využívá mechanismu PAM k~ověření totožnosti uživatele.
 
-První část kapitoly se~zabývá přístupem subjektů k~souborům a~procesům. Je zde čerpáno z~dokumentu \cite{secureProg}, který je~vhodný pro hlubší studium problematiky a~knihy~\cite{OSP}, která je~obecněším úvodem. Část pojednávající o~Kiosku čerpá z~úvodu do Kiosku \cite{Kioskintro} a~zdrojového kódu kdelibs \cite{codeKdeLibs}. Část o~KAuth čerpá z~\cite{codeKAuth,KAuthusage}, v~části o~PolicyKitu je~čerpáno z~\cite{manpolkit_overview, manpolkit1, manpklocalauth}. Dříve než se~pustíme do samotného popisu technologií by bylo dobré prostudovat přílohu~\nameref{pojmySeznam}.
+První část kapitoly se~zabývá přístupem subjektů k~souborům a~procesům. Je zde čerpáno z~dokumentu \cite{secureProg}, který je~vhodný pro hlubší studium problematiky a~knihy~\cite{OSP}, která je~obecněším úvodem. Část pojednávající o~Kiosku čerpá z~úvodu do Kiosku \cite{Kioskintro} a~zdrojového kódu kdelibs \cite{codeKdeLibs}. Část o~KAuth čerpá z~\cite{codeKAuth,KAuthusage}, v~části o~PolicyKitu je~čerpáno z~\cite{manpolkit_overview, manpolkit1, manpklocalauth}. Dříve než se~pustíme do samotného popisu technologií by bylo dobré prostudovat přílohu~\ref{pojmySeznam}.
 
 \section{Souborový systém a~řízení přístupu k~souborům}
 Unixu podobné operační systémy mají tzv. virtuální systém souborů, kde jsou všechny soubory na všech připojených souborových systémech umístěny v~jedné hierarchii. Tato hierarchie souborů a~adresářů má jeden kořenový adresář \uv{/}. Adresáře obsahují soubory a~platí, že adresář je~speciálním typem souboru (existují také další speciální soubory pro zařízení). Adresáře dále obsahují dvě speciální položky: \uv{..} odkazující na adresář o~úroveň výše a~\uv{.} odkazující na adresář samotný (identita).
@@ -364,7 +364,7 @@ Názvy akcí a~zdrojů nemohou obsahovat jiné znaky než malá písmena a~čís
 \subsection*{Implementace konvertoru}
 Konvertor se~skládá ze dvou částí. Hlavní částí je~pomocník, postavený na knihovně KAuth. Ten implementuje veškeré funkce celku (ve zdrojovém kódu je~to kdelibs/kdecore/auth/kioskpklahelper.cpp). Druhou částí je~jednoduchý terminálový program, který není až na~spuštění pomocníka přes KAuth příliš zajímavý (ve zdrojových kódech je~to kioskpklaconvert.cpp ve stejné složce jako pomocník).
 
-Konvertor funguje tak, že nejdříve získá ze souboru /etc/kde4rc nastavení Kiosku, pomocí něj vyhledá Kiosk profily, komu a~jakým skupinám jsou přiřazeny a~jaké je~pořadí skupin při zpracování skupinových profilů. Je také získán seznam akcí známých v~PolicyKit Local Authority. Tento seznam se~filtruje do dvou skupin podle jmenných prostorů použitých pro omezení na akce a~zdroje. Toto jsou základní vstupní parametry programu. Uživatel nemá možnost do procesu přímo zasáhnout. Program také nemá žádné uživatelské vstupy. Pro ilustraci toho jak jsou aplikovány Kiosk profily je~vhodný tento diagram: \ref{fig:konv_profily}.
+Konvertor funguje tak, že nejdříve získá ze souboru /etc/kde4rc nastavení Kiosku, pomocí něj vyhledá Kiosk profily, komu a~jakým skupinám jsou přiřazeny a~jaké je~pořadí skupin při zpracování skupinových profilů. Je také získán seznam akcí známých v~PolicyKit Local Authority. Tento seznam se~filtruje do dvou skupin podle jmenných prostorů použitých pro omezení na akce a~zdroje. Toto jsou základní vstupní parametry programu. Uživatel nemá možnost do procesu přímo zasáhnout. Program také nemá žádné uživatelské vstupy. Pro ilustraci toho jak jsou aplikovány Kiosk profily je~vhodný diagram \ref{fig:konv_profily}.
 
 Další částí je~vytvoření .pkla souborů z~jednotlivých Kiosk profilů. V~pořadí zjištěném z~nastavení Kiosku se~z~nich pomocí KConfigu načtou soubory globálního nastavení kdeglobals. Z~těch jsou dále vytaženy KConfig skupiny \cppc{KDE Action Restrictions} a~\cppc{KDE Resource Retrictions}. Klíče jejich položek jsou zpracovány stejně jako specifikace v~.actions souborech. Upravené klíče společně s~jejich hodnotami a~přiřazenou identitou pak tvoří záznamy ukládané do .pkla souborů.
 
@@ -457,9 +457,9 @@ Tato kapitola se~zabývá portem nástroje KioskTool z~KDE~3 na KDE~4. Nástroj 
 \label{fig_6}
 \end{figure}
 
-Úvodní obrazovka \ref{fig_6}.a ukazuje seznam profilů s~jejich popisem, lištu s~menu a~tlačítka pro manipulaci s~profily. Velmi chybí možnost vytvoření kopie již existujícího Kiosk profilu.
+Úvodní obrazovka \ref{fig_6}a ukazuje seznam profilů s~jejich popisem, lištu s~menu a~tlačítka pro manipulaci s~profily. Velmi chybí možnost vytvoření kopie již existujícího Kiosk profilu.
 
-Dialog \ref{fig_6}.b pro vytvoření nového profilu je~poměrně jednoduchý. Umožňuje nastavit název a~popis profilu a~dále který uživatel bude vlastnit složku s~profilem (bude mít přístup pro zápis) a~kde bude profil uložen.
+Dialog \ref{fig_6}b pro vytvoření nového profilu je~poměrně jednoduchý. Umožňuje nastavit název a~popis profilu a~dále který uživatel bude vlastnit složku s~profilem (bude mít přístup pro zápis) a~kde bude profil uložen.
 
 \begin{figure}[ht]
 \centering
@@ -472,9 +472,9 @@ Dialog \ref{fig_6}.b pro vytvoření nového profilu je~poměrně jednoduchý. U
 \label{fig_7}
 \end{figure}
 
-Dialog pro přiřazení Kiosk profilů skupinám a~uživatelům na obrázku \ref{fig_7}.a je~až příliš jednoduchý. Když má uživatel přiřazen svůj vlastní profil, nevztahují se~na něj profily pro skupiny kterých je~členem. Toto není v~programu nijak poznat. Zde by bylo vhodné, kdyby program poskytoval nějaký pohled, který by ukazoval všechny profily efektivní pro uživatele. Výchozí Kiosk profil takto zvýrazněn je.
+Dialog pro přiřazení Kiosk profilů skupinám a~uživatelům na obrázku \ref{fig_7}a je~až příliš jednoduchý. Když má uživatel přiřazen svůj vlastní profil, nevztahují se~na něj profily pro skupiny kterých je~členem. Toto není v~programu nijak poznat. Zde by bylo vhodné, kdyby program poskytoval nějaký pohled, který by ukazoval všechny profily efektivní pro uživatele. Výchozí Kiosk profil takto zvýrazněn je.
 
-Na obrázku \ref{fig_7}.b je~dialog pro úpravu profilu. Nastavení je~rozděleno na jednotlivé komponenty. Je možné z~něj navíc spouštět další části systému KDE a~tak docílit toho, že KioskTool může využít již existující funkcionalitu. Není proto nutné znovu implementovat něco, co již funguje a~uživatel pro nastavení Kiosk profilů používá stejné nástroje jako pro normální nastavení.
+Na obrázku \ref{fig_7}b je~dialog pro úpravu profilu. Nastavení je~rozděleno na jednotlivé komponenty. Je možné z~něj navíc spouštět další části systému KDE a~tak docílit toho, že KioskTool může využít již existující funkcionalitu. Není proto nutné znovu implementovat něco, co již funguje a~uživatel pro nastavení Kiosk profilů používá stejné nástroje jako pro normální nastavení.
 
 \begin{figure}[h]
     \centering
@@ -578,7 +578,7 @@ Implementace nového uživatelského rozhraní spočívá v~odstranění původn
     \label{fig:kioskstatesnew}
 \end{figure}
 
-Přechod mezi stavy programu je~opět možné modelovat stavovým diagramem: \ref{fig:kioskstatesnew}. Oproti původnímu diagramu je~odstraněn stav pro přiřazování vybraného profilu uživatelům a~skupinám, protože je tato funkce součástí nového hlavního okna (\cppc{MAIN_VIEW}). Všechny přechody ze stavu \cppc{MAIN_VIEW} místo výměny karet otevírají modální dialogy.
+Přechod mezi stavy programu je~opět možné modelovat stavovým diagramem, viz. obrázek \ref{fig:kioskstatesnew}. Oproti původnímu diagramu je~odstraněn stav pro přiřazování vybraného profilu uživatelům a~skupinám, protože je tato funkce součástí nového hlavního okna (\cppc{MAIN_VIEW}). Všechny přechody ze stavu \cppc{MAIN_VIEW} místo výměny karet otevírají modální dialogy.
 
 Jediným typem vstupu od~pohledů bude výběr jedné položky. Tlačítka po pravé straně slouží ke spouštění akcí upravujících stav modelů. Akce \uv{Commit} pak způsobí uložení změn.
 
@@ -589,9 +589,9 @@ Pohledy v novém uživatelském rozhraní jsou odvozeny od~třídy \cppc{QTreeVi
 Zbytek programu se, až na kosmetické úpravy jednotlivých karet nyní převedených na modální dialogy, nemění.
 
 \subsection*{Další možný postup}
-V~této fázi je~nástroj KioskTool použitelný pro nastavení omezení akcí a~byly v~něm díky provedeným změnám odstraněny chyby. Editace profilů by však stále mohla být řešena lépe. Díky oddělení správy profilů je možné relativně jednoduše nahradit stávající editor. Například by mohl být integrován nástroj KConfigEditor\cite{KConfigEditor}. Ten vypadá zhruba tak, jako na tomto obrázku: \ref{fig:kconfeditor}.
+V~této fázi je~nástroj KioskTool použitelný pro nastavení omezení akcí a~byly v~něm díky provedeným změnám odstraněny chyby. Editace profilů by však stále mohla být řešena lépe. Díky oddělení správy profilů je možné relativně jednoduše nahradit stávající editor. Například by mohl být integrován nástroj KConfigEditor\cite{KConfigEditor}, pro ilustraci uvedený v~podobě snímku obrazovky \ref{fig:kconfeditor}.
 
-KConfigEditor používá rozšíření systému KConfig o~deklarace klíčů a~jejich typů pomocí systému KConfigXT. Ten je~zpravidla používán k~vygenerování dialogů pro nastavení programů. Soubory s~nastavením KConfigXT se~instalují společně s~programy. Lze jich tedy využít v~takovémto editoru nastavení. Program je podobně jako původní KioskTool napsán pro KDE~3 a~dosud nebyl proveden žádný pokus o~jeho port do~KDE~4. Integrace tohoto nástroje a~rozšíření a~oprava KConfigXT souborů by vedly k~vcelku elegantnímu řešení problému úpravy Kiosk profilů. KioskTool by pak mohl sloužit i~k~editaci nastavení v~domovské složce přihlášeného uživatele.
+KConfigEditor používá rozšíření systému KConfig o~deklarace klíčů a~jejich typů pomocí systému KConfigXT. Ten je~zpravidla používán k~vygenerování dialogů pro nastavení programů. Soubory s~nastavením KConfigXT se~instalují společně s~programy a~lze jich tedy využít právě v~takovémto editoru nastavení. Program je~podobně jako původní KioskTool napsán pro KDE~3 a~dosud nebyl proveden žádný pokus o~jeho port do~KDE~4. Integrace tohoto nástroje a~rozšíření a~oprava KConfigXT souborů by vedly k~vcelku elegantnímu řešení problému úpravy Kiosk profilů. KioskTool by pak mohl sloužit i~k~změnám nastavení v~domovské složce přihlášeného uživatele, které by jinak musel uživatel dělat v obyčejném textovém editoru.
 
 \begin{figure}[h]
     \centering
