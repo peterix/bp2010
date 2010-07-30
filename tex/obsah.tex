@@ -58,14 +58,14 @@ Prostředí KDE (po přeznačení KDE Software Compilation) je~možné provozova
 
 %%%% 
 
-V~rámci KDE bylo možné již dříve měnit práva uživatelů -- skrývat položky menu, zamezit použití terminálu a~podobně. K~tomu slouží Kiosk, což je~rozhraní nad konfiguračním systémem KDE KConfig.
+V~rámci KDE bylo možné již dříve měnit práva uživatelů -- skrývat položky menu, zamezit použití terminálu a~podobně. K~tomu slouží Kiosk, což je~framework postavený nad konfiguračním systémem KDE KConfig.
 
-Práce se~z~velké části zabývá knihovnami v~balíku KDE-Libs a~rozhraními Kiosk a~KAuth. Obě rozhraní slouží k~autorizaci akcí, které jsou v~rámci určité aplikace proveditelné uživatelem. Administrátor může použitím těchto rozhraní takovéto akce povolit nebo zakázat. Kiosk je~starší, postavený nad konfiguračním rozhraním KConfig a~má některá další specifika jako jsou zdroje dat nebo povolování přístupu~k~adresám URL. Zdroji dat rozumíme určitý typ souborů používaný v~aplikacích KDE. Například omezením pozadí na plochu, které se~řadí mezi zdroje dat (alespoň teoreticky) zamezíme tomu, aby uživatel mohl měnit pozadí plochy na jiné, než instalované v~systému. KAuth je~novějšího data a~je narozdíl od~Kiosku schopen také tyto akce provádět spouštěním pomocných programů s~jinými právy, než má jeho uživatel.
+Práce se~z~velké části zabývá knihovnami v~balíku KDE-Libs a~rozhraními KAuthorized a~KAuth. Obě rozhraní slouží k~autorizaci akcí, které jsou v~rámci určité aplikace proveditelné uživatelem. Administrátor může použitím těchto rozhraní takovéto akce povolit nebo zakázat. Kiosk je~starší, postavený nad konfiguračním systémem KConfig a~má některá další specifika jako jsou zdroje dat nebo povolování přístupu~k~adresám URL. Zdroji dat rozumíme určitý typ souborů používaný v~aplikacích KDE. Například omezením pozadí na plochu, které se~řadí mezi zdroje dat (alespoň teoreticky) zamezíme tomu, aby uživatel mohl měnit pozadí plochy na jiné, než instalované v~systému. KAuth je~novějšího data a~je narozdíl od~Kiosku schopen také tyto akce provádět spouštěním pomocných programů s~jinými právy, než má jeho uživatel.
 
-Společně s~nutnými základy bezpečnosti v~systému linux jsou tyto technologie a~způsob jakým budou v~práci využity blíže popsány ve druhé kapitole. Hlavním cílem práce je~integrovat KAuth do Kiosku, aby mohl být používán pro ukládání povolení akcí a~přístupu ke zdrojům dat. Třetí kapitola integraci popisuje a~dále se~zabývá implementací nástroje pro migraci dat a~také pojednává o~testování systému jako celku. Další částí práce je~dokončení portu (přenesení) konfiguračního nástroje KioskTool z~prostředí KDE~3 do prostředí KDE~SC~4. Tímto se~zabývá kapitola čtvrtá. Pátá kapitola práci uzavírá a~navrhuje další možný postup.
+Společně s~nutnými základy bezpečnosti v~systému linux jsou tyto technologie a~způsob jakým budou v~práci využity blíže popsány ve druhé kapitole. Hlavním cílem práce je~integrovat KAuth do KAuthorized, aby mohl být používán pro ukládání povolení akcí a~přístupu ke zdrojům dat. Třetí kapitola integraci popisuje a~dále se~zabývá implementací nástroje pro migraci dat a~také pojednává o~testování systému jako celku. Další částí práce je~dokončení portu (přenesení) konfiguračního nástroje KioskTool z~prostředí KDE~3 do prostředí KDE~SC~4. Tímto se~zabývá kapitola čtvrtá. Pátá kapitola práci uzavírá a~navrhuje další možný postup.
 
 \chapter{Použité technologie}
-Tato kapitola se~zabývá popisem technologií použitých dále. Jedná se~zejména o~nástroje pro řízení přístupu \emph{subjektů} k~\emph{prostředkům} systému v~rámci uživatelského prostoru systému Linux. Subjektem mohou být například procesy, uživatelé nebo skupiny uživatelů. Prostředky pak mohou být soubory a~adresáře, zařízení (speciální typ souborů), čísla TCP a~UDP portů, nebo zmíněné akce autorizačních rozhraní Kiosk a~KAuth.
+Tato kapitola se~zabývá popisem technologií použitých dále. Jedná se~zejména o~nástroje pro řízení přístupu \emph{subjektů} k~\emph{prostředkům} systému v~rámci uživatelského prostoru systému Linux. Subjektem mohou být například procesy, uživatelé nebo skupiny uživatelů. Prostředky pak mohou být soubory a~adresáře, zařízení (speciální typ souborů), čísla TCP a~UDP portů, nebo zmíněné akce autorizačních rozhraní KAuthorized a~KAuth.
 
 Uživatelé se~do systému přihlašují, přičemž dochází k~ověření jejich identity, autentizaci. V~systému Linux lze řešit přihlašování pomocí mechanismu PAM\footnote{Pluggable Authentication Modules}. Ten umožňuje psát programy vyžadující autentizaci nazávisle na způsobu jakým je~jí dosaženo. Nezáleží pak, jestli se~uživatel přihlašuje heslem nebo například otiskem prstu. Další způsoby autentizace je~možné do systému doplnit pomocí zásuvných modulů. Podrobnější popis lze nalézt například v~článku, který vyšel na Root.cz\cite{rootpam}. Pokud je~to vyžadováno, KAuth využívá mechanismu PAM k~ověření totožnosti uživatele.
 
@@ -84,9 +84,9 @@ Setuid bit určuje, že spuštěný program má běžet pod účtem vlastníka s
 %TODO: Něco o tom, jak UID a GID funguji u procesu, jaky to ma vliv na pristup uzivatelum k pameti procesu, debugging a podobne.
 
 \section{Kiosk}
-Z~pohledu administrátora Kiosk nabízí možnost upravit si KDE pro své vlastní účely. Například schovat některé položky v~grafickém rozhraní aplikací, znemožnit uživatelům měnit nastavení a~data aplikací, zamezit spuštění terminálu nebo zcela zamknout nastavení všech aplikací. Z~pohledu programátora je~to jednoduché rozhraní umožňující autorizaci akcí, zdrojů dat pro aplikace a .
+Z~pohledu administrátora Kiosk nabízí možnost upravit si KDE pro své vlastní účely. Například schovat některé položky v~grafickém rozhraní aplikací, znemožnit uživatelům měnit nastavení a~data aplikací, zamezit spuštění terminálu nebo zcela zamknout nastavení všech aplikací. Z~pohledu programátora je~to jednoduché rozhraní umožňující autorizaci akcí, zdrojů dat pro aplikace a~přístupu k~adresám URL.
 
-Kiosk je~vlastně souhrnný pojem pro určité vlastnosti konfiguračního systému KConfig, jeho způsob načítání konfigurace z~tzv. Kiosk profilů, rozhraní KAuthorized a~specifikace, jakým způsobem jsou autorizace akcí uloženy v~KConfigu. Nelze přesně určit jedno konkrétní místo ve zdrojovém kódu KDE, kde by bylo popsáno jakým způsobem funguje, ale podrobným zkoumáním lze vysledovat, jak je~docíleno výsledného efektu.
+Kiosk je~vlastně framework, který kombinuje určité vlastnosti konfiguračního systému KConfig, jeho způsob načítání konfigurace z~tzv. Kiosk profilů, rozhraní KAuthorized a~specifikace, jakým způsobem jsou autorizace akcí uloženy v~KConfigu. Nelze přesně určit jedno konkrétní místo ve zdrojovém kódu KDE, kde by bylo popsáno jakým způsobem funguje, ale podrobným zkoumáním lze vysledovat, jak je~docíleno výsledného efektu.
 %Obrázek: architektura Kiosk, Kconfig
 
 \subsection*{KConfig}
@@ -305,7 +305,7 @@ Rozdíl mezi položkami \cppc{ResultAny}, \cppc{ResultInactive} a~\cppc{ResultAc
 
 \chapter{Integrace KAuth do KAuthorized}
 \section{Analýza problému}
-První praktickou částí projektu je~zjistit jak nejlépe integrovat systém KAuth do rozhraní KAuthorized. Díky celkové rozdílnosti KAuthu a~Kiosku bude nejspíše potřeba určitých kompromisů.
+První praktickou částí projektu je~zjistit jak nejlépe integrovat systém KAuth do rozhraní KAuthorized. Díky celkové rozdílnosti KAuthu a~KAuthorized bude nejspíše potřeba určitých kompromisů.
 
 Na jedné straně Kiosk, podporující profily přiřazené uživatelům a~skupinám a~změnu těchto profilů (stačí být administrátor a~upravovat profily standardními nástroji). Na druhé straně KAuth, primárně určený k~odstranění nutnosti spouštět programy pro systémovou konfiguraci s~grafickým uživatelským rozhraním jako administrátor.
 
@@ -620,7 +620,7 @@ V~příloze B jsou informace o~umístění zdrojových kódů, obsahu přiložen
 \item[KDE SC,] nebo také KDE Software Compilation zahrnuje veškeré projekty KDE, které mají jednotný vývojový cyklus.
 \item[KAuth] je~rozhraní nad autorizačním řešením jako je~například PolicyKit.
 \item[KConfig] je~systém pro ukládání a~načítání nastavení v~KDE SC.
-\item[Kiosk] je~souhrnný pojem pro některé vlastnosti KConfigu a~postup načítání konfigurace obecně.
+\item[Kiosk] je~framework sdružující aplikační rozhraní KAuthorized, některé vlastnosti KConfigu a~postup načítání konfigurace obecně.
 \item[Kiosk profil] je~přiřazený uživateli nebo skupině uživatelů. Má vyšší prioritu než normální uživatelská nastavení KDE, ale nižší než globální systémové nastavení.
 \item[KioskTool] je~aplikace pro správu Kiosk profilů. V~KDE 3 umožňovala jednoduše nastavit některé aspekty Kiosku/KConfigu bez nutnosti měnit profily ručně.
 \item[KAuthorized] je~tenké rozhraní nad KConfigem/Kioskem umožňující dotazování, zda jsou některé typy akcí povoleny.
