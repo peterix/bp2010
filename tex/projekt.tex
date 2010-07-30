@@ -82,11 +82,11 @@
 keywords.cs={KDE, Kiosk, KAuth, KAuthorized, KioskTool, autorizace, autentizace, PolicyKit, bezpečnost, lokální odmítnutí služby}, %klicova slova v ceskem jazyce
   keywords.en={KDE, Kiosk, KAuth, KAuthorized, KioskTool, authorization, authentication, PolicyKit, security, local Denial of Service}, %klicova slova v anglickem jazyce
   %Abstract
-  abstract.cs={Práce popisuje rozhraní KAuthorized a KAuth z knihoven KDE a je proveden pokus o integraci KAuth do KAuthorized. Jsou popsány problémy s touto integrací vzájemně nekompatibilních rozhraní. Během integrace je objeven lokální útok typu Denial of Service na autorizační systém PolicyKit. Integrace není úspěšná. Zbytek práce se zabývá nástrojem KioskTool a návrhem nového uživatelského rozhraní pro něj.}, % abstrakt v ceskem jazyce
-abstract.en={This work describes the KAuthorized and KAuth interfaces of the KDE libraries and integration of KAuth into KAuthorized is attempted. Issues with this integration of mutually incompatible interfaces are described. A local Denial of Service attack on the PolicyKit authorization system is discovered during the integration. The integration is not successful. Rest of the work describes the KioskTool utility and proposes a new user interface for it.}, % abstrakt v anglickem jazyce
+  abstract.cs={Práce popisuje autorizační rozhraní KAuthorized postavené nad konfiguračním systémem KConfig a~KAuth založený na autorizačním systému PolicyKit. Je implementována integrace KAuth do KAuhorized spolu s~testy této integrace a~nástrojem pro převod nastavení z~KConfigu do PolicyKitu. Během testování je objeven lokální útok odepření služby na PolicyKit. Druhá část práce popisuje port nástroje KioskTool do prostředí KDE~4 a vylepšení jeho grafického rozhraní.}, % abstrakt v ceskem jazyce
+abstract.en={This work describes the KAuthorized and KAuth authorization interfaces, which are based on the KConfig configuration system and PolicyKit authorization system, respectively. KAuth is integrated into KAuthorized and tests of this integration are implemented, along with a tool that converts the KConfig-based settings to PolicyKit. During the testing phase, a local Denial of Service attack on PolicyKit is discovered. The second part of the work decribes the port of the PolicyKit tool to KDE~4 and the imporvement ot its user interface.}, % abstrakt v anglickem jazyce
   %Prohlaseni
   declaration={Prohlašuji, že jsem tuto bakalářskou práci vypracoval samostatně pod vedením pana Ing. Jozefa Mlícha.
-    Další informace mi poskytli Jaroslav Řezník, Dario Freddi a Radek Nováček.
+  Další informace mi poskytli Dario Freddi, Jaroslav Řezník a Radek Nováček.
     Uvedl jsem všechny literární prameny a publikace, ze kterých jsem čerpal.},
   %Podekovani (nepovinne)
   acknowledgment={Děkuji autorům nástroje KDevelop4, protože bez něj bych se v kódu prostředí KDE tak rychle nezorientoval.} % nepovinne
